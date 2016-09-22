@@ -47,7 +47,7 @@ public class TFTPServer {
       for(;;) { // loop forever
          // Construct a DatagramPacket for receiving packets up
          // to 100 bytes long (the length of the byte array).
-         
+
          data = new byte[100];
          receivePacket = new DatagramPacket(data, data.length);
 
@@ -148,30 +148,10 @@ public class TFTPServer {
             System.out.println("byte " + j + " " + response[j]);
          }
 
-         // Send the datagram packet to the client via a new socket.
-
-         try {
-            // Construct a new datagram socket and bind it to any port
-            // on the local host machine. This socket will be used to
-            // send UDP Datagram packets.
-            sendSocket = new DatagramSocket();
-         } catch (SocketException se) {
-            se.printStackTrace();
-            System.exit(1);
-         }
-
-         try {
-            sendSocket.send(sendPacket);
-         } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-         }
-
-         System.out.println("Server: packet sent using port " + sendSocket.getLocalPort());
-         System.out.println();
-
-         // We're finished with this socket, so close it.
-         sendSocket.close();
+         // Create a new client connection thread to send the DatagramPacket
+         Thread clientConnection = 
+        		 new TFTPClientConnection("Client Connection Thread", sendPacket);
+         clientConnection.start();
       } // end of loop
 
    }
