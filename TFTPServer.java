@@ -8,11 +8,12 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class TFTPServer extends Thread{
+public class TFTPServer{
 
 	// UDP datagram packets and sockets used to send / receive
 	private DatagramPacket receivePacket;
 	private DatagramSocket receiveSocket;
+	public static Controller controller;
 
 	public TFTPServer()
 	{
@@ -27,9 +28,8 @@ public class TFTPServer extends Thread{
 		}
 	}
 
-	public synchronized void run()
+	public void receiveAndSend()
 	{
-		Controller controller = Controller.controller;
 		byte[] data;
 
 		int len, j=0;
@@ -72,7 +72,7 @@ public class TFTPServer extends Thread{
 
 			// Create a new client connection thread to send the DatagramPacket
 			Thread clientConnection = 
-					new TFTPClientConnection("Client Connection Thread", receivePacket);
+					new TFTPClientConnection("Client Connection Thread", receivePacket, controller.getOutputMode());
 
 			clientConnection.start();
 
@@ -81,6 +81,9 @@ public class TFTPServer extends Thread{
 	}
 
 	public static void main( String args[] ) throws Exception{
-
+		TFTPServer server = new TFTPServer();
+		controller = new Controller(server);
+		controller.start();
+		server.receiveAndSend();
 	}
 }

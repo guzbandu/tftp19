@@ -20,10 +20,12 @@ public class TFTPClientConnection extends Thread {
 	// UDP datagram packet and socket used to send 
 	private DatagramSocket sendSocket;
 	private DatagramPacket sendPacket, receivePacket;
+	private String outputMode;
 
-	public TFTPClientConnection(String name, DatagramPacket packet) {
+	public TFTPClientConnection(String name, DatagramPacket packet, String outputMode) {
 		super(name); // Name the thread
 		receivePacket = packet;
+		this.outputMode = outputMode;
 
 		// Construct a datagram socket and bind it to any available port
 		// on the local host machine. This socket will be used to
@@ -36,7 +38,7 @@ public class TFTPClientConnection extends Thread {
 	}
 
 	public void run() {
-		Controller controller = Controller.controller;
+		Controller controller = TFTPServer.controller;
 		byte[] data = receivePacket.getData();
 		byte[] response = new byte[4];
 
@@ -109,7 +111,7 @@ public class TFTPClientConnection extends Thread {
 				receivePacket.getAddress(), receivePacket.getPort());
 
 		System.out.println("Server: Sending packet:");
-		if (controller.getOutputMode().equals("verbose")){
+		if (outputMode.equals("verbose")){
 			System.out.println("To host: " + sendPacket.getAddress());
 			System.out.println("Destination host port: " + sendPacket.getPort());
 			len = sendPacket.getLength();
@@ -128,7 +130,7 @@ public class TFTPClientConnection extends Thread {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		if (controller.getOutputMode().equals("verbose")){
+		if (outputMode.equals("verbose")){
 			System.out.println("Server: packet sent using port " + sendSocket.getLocalPort());
 			System.out.println();
 		}

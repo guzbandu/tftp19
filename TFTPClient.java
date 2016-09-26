@@ -10,6 +10,7 @@ public class TFTPClient {
 
    private DatagramPacket sendPacket, receivePacket;
    private DatagramSocket sendReceiveSocket;
+   public static Controller controller;
    
    public TFTPClient()
    {
@@ -26,7 +27,6 @@ public class TFTPClient {
 
    public void sendAndReceive(String request, String filename, String mode)
    {
-	  Controller controller = Controller.controller;
       byte[] msg = new byte[100], // message we send
              fn, // filename as an array of bytes
              md, // mode as an array of bytes
@@ -158,5 +158,8 @@ public class TFTPClient {
    }
 
    public static void main(String args[]){
+	   TFTPClient client = new TFTPClient();
+		controller = new Controller(client);
+		controller.start();
    }
 }
