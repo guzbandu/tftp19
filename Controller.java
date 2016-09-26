@@ -36,7 +36,9 @@ public class Controller extends Thread{
 	public void getInput(){
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("Output Mode:\t" + outputMode);
-		System.out.println("Run Mode:\t" + runMode);
+		if(user.equals("Client")){
+			System.out.println("Run Mode:\t" + runMode);
+		}
 		System.out.print("\nTo set output mode type 'verbose' or 'quiet'");
 		if(user.equals("Client")){
 			System.out.print("\nTo set run mode type 'normal' or 'test'");
