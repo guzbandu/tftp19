@@ -36,7 +36,7 @@ public class TFTPClientConnection extends Thread {
 	}
 
 	public void run() {
-
+		Controller controller = Controller.controller;
 		byte[] data = receivePacket.getData();
 		byte[] response = new byte[4];
 
@@ -109,13 +109,15 @@ public class TFTPClientConnection extends Thread {
 				receivePacket.getAddress(), receivePacket.getPort());
 
 		System.out.println("Server: Sending packet:");
-		System.out.println("To host: " + sendPacket.getAddress());
-		System.out.println("Destination host port: " + sendPacket.getPort());
-		len = sendPacket.getLength();
-		System.out.println("Length: " + len);
-		System.out.println("Containing: ");
-		for (j=0;j<len;j++) {
-			System.out.println("byte " + j + " " + response[j]);
+		if (controller.getOutputMode().equals("verbose")){
+			System.out.println("To host: " + sendPacket.getAddress());
+			System.out.println("Destination host port: " + sendPacket.getPort());
+			len = sendPacket.getLength();
+			System.out.println("Length: " + len);
+			System.out.println("Containing: ");
+			for (j=0;j<len;j++) {
+				System.out.println("byte " + j + " " + response[j]);
+			}
 		}
 
 
@@ -126,9 +128,10 @@ public class TFTPClientConnection extends Thread {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
-		System.out.println("Server: packet sent using port " + sendSocket.getLocalPort());
-		System.out.println();
+		if (controller.getOutputMode().equals("verbose")){
+			System.out.println("Server: packet sent using port " + sendSocket.getLocalPort());
+			System.out.println();
+		}
 
 		// We're finished with this socket, so close it.
 		sendSocket.close();

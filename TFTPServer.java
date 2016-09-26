@@ -8,7 +8,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class TFTPServer {
+public class TFTPServer extends Thread{
 
 	// UDP datagram packets and sockets used to send / receive
 	private DatagramPacket receivePacket;
@@ -27,8 +27,9 @@ public class TFTPServer {
 		}
 	}
 
-	public void receiveAndSendTFTP() throws Exception
+	public synchronized void run()
 	{
+		Controller controller = Controller.controller;
 		byte[] data;
 
 		int len, j=0;
@@ -50,21 +51,24 @@ public class TFTPServer {
 			}
 
 			// Process the received datagram.
-			System.out.println("Server: Packet received:");
-			System.out.println("From host: " + receivePacket.getAddress());
-			System.out.println("Host port: " + receivePacket.getPort());
-			len = receivePacket.getLength();
-			System.out.println("Length: " + len);
-			System.out.println("Containing: " );
+			 if (controller.getOutputMode().equals("verbose")){
+				 System.out.println("Server: Packet received:");
+					System.out.println("From host: " + receivePacket.getAddress());
+					System.out.println("Host port: " + receivePacket.getPort());
+					len = receivePacket.getLength();
+					System.out.println("Length: " + len);
+					System.out.println("Containing: " );
 
-			// print the bytes
-			for (j=0;j<len;j++) {
-				System.out.println("byte " + j + " " + data[j]);
-			}
+					// print the bytes
+					for (j=0;j<len;j++) {
+						System.out.println("byte " + j + " " + data[j]);
+					}
 
-			// Form a String from the byte array.
-			String received = new String(data,0,len);
-			System.out.println(received);
+					// Form a String from the byte array.
+					String received = new String(data,0,len);
+					System.out.println(received);
+			 }
+			
 
 			// Create a new client connection thread to send the DatagramPacket
 			Thread clientConnection = 
@@ -76,11 +80,7 @@ public class TFTPServer {
 
 	}
 
-	public static void main( String args[] ) throws Exception
-	{
-		TFTPServer c = new TFTPServer();
-		c.receiveAndSendTFTP();
+	public static void main( String args[] ) throws Exception{
+
 	}
 }
-
-
