@@ -14,6 +14,7 @@ public class TFTPServer{
 	private DatagramPacket receivePacket;
 	private DatagramSocket receiveSocket;
 	public static Controller controller;
+	private int count;
 
 	public TFTPServer()
 	{
@@ -22,6 +23,8 @@ public class TFTPServer{
 			// on the local host machine. This socket will be used to
 			// receive UDP Datagram packets.
 			receiveSocket = new DatagramSocket(69);
+			receiveSocket.setSoTimeout(1000);
+			count=0;
 		} catch (SocketException se) {
 			se.printStackTrace();
 			System.exit(1);
@@ -41,10 +44,22 @@ public class TFTPServer{
 			data = new byte[100];
 			receivePacket = new DatagramPacket(data, data.length);
 
-			System.out.println("Server: Waiting for packet.");
+			if(count==0) {
+				if (controller.getOutputMode().equals("verbose")){
+					System.out.println("Server: Waiting for packet.");
+				}
+			}
 			// Block until a datagram packet is received from receiveSocket.
 			try {
 				receiveSocket.receive(receivePacket);
+			} catch (SocketTimeoutException e) {
+				count++;
+				if(controller.quit) {
+					receiveSocket.close();
+					System.exit(0);
+				} else {
+					this.receiveAndSend();
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);
@@ -66,7 +81,7 @@ public class TFTPServer{
 
 					// Form a String from the byte array.
 					String received = new String(data,0,len);
-					System.out.println(received);
+					System.out.println(received);				
 			 }
 			
 
@@ -75,7 +90,8 @@ public class TFTPServer{
 					new TFTPClientConnection("Client Connection Thread", receivePacket, controller.getOutputMode());
 
 			clientConnection.start();
-
+			count=0;
+			
 		} // end of loop
 
 	}

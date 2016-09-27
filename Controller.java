@@ -5,7 +5,7 @@ public class Controller extends Thread{
 	private String outputMode = "quiet";
 	private String runMode = "normal";
 	private String transferMode = "OCTET";
-	public static boolean quit = false;
+	public boolean quit = false;
 	private String user;
 
 	public static TFTPClient client;
@@ -28,9 +28,6 @@ public class Controller extends Thread{
 		while(!quit){
 			getInput();
 		}
-		/*
-		 * Put way to shutdown the Server and Client here.
-		 */
 	}
 	
 	public void getInput(){

@@ -11,6 +11,7 @@ public class TFTPClient {
    private DatagramPacket sendPacket, receivePacket;
    private DatagramSocket sendReceiveSocket;
    public static Controller controller;
+   private int count;
    
    public TFTPClient()
    {
@@ -19,6 +20,8 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
+	     sendReceiveSocket.setSoTimeout(10000);
+		 count=0;
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
          System.exit(1);
@@ -133,6 +136,14 @@ public class TFTPClient {
        try {
            // Block until a datagram is received via sendReceiveSocket.
            sendReceiveSocket.receive(receivePacket);
+       } catch (SocketTimeoutException e) {
+   			count++;
+   			if(controller.quit) {
+   				sendReceiveSocket.close();
+   				System.exit(0);
+   			} else {
+   				this.sendAndReceive(request, filename, mode);
+   			}
         } catch(IOException e) {
            e.printStackTrace();
            System.exit(1);
@@ -152,9 +163,6 @@ public class TFTPClient {
        }
         
        System.out.println();
-
-      // We're finished, so close the socket.
-      sendReceiveSocket.close();
    }
 
    public static void main(String args[]){
