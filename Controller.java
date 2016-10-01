@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class Controller extends Thread{
-	private String outputMode = "quiet";
+	private String outputMode = "verbose";
 	private String runMode = "normal";
 	private String transferMode = "OCTET";
 	public boolean quit = false;

@@ -12,7 +12,6 @@ public class TFTPClient {
    private DatagramPacket sendPacket, receivePacket;
    private DatagramSocket sendReceiveSocket;
    public static Controller controller;
-   private int count;
    
    public TFTPClient()
    {
@@ -21,8 +20,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
-	     sendReceiveSocket.setSoTimeout(10000);
-		 count=0;
+	     //sendReceiveSocket.setSoTimeout(10000);
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
          System.exit(1);
@@ -128,7 +126,7 @@ public class TFTPClient {
     	   System.out.println("Client: Packet sent.");
        
        int i = 1;
-       
+       boolean quit = false;
        //String outFilename = fileHandler.getOutFile().getName();
        sendAndReceive:
        while (true) {
@@ -143,7 +141,6 @@ public class TFTPClient {
 	           // Block until a datagram is received via sendReceiveSocket.
 	           sendReceiveSocket.receive(receivePacket);
 	       } catch (SocketTimeoutException e) {
-	   			count++;
 	   			if(controller.quit) {
 	   				sendReceiveSocket.close();
 	   				System.exit(0);
@@ -163,17 +160,28 @@ public class TFTPClient {
 	    	   System.out.println("Length: " + len);
 	    	   int packetNo = (int) ((msg[2] << 8) & 0xff) | (msg[3] & 0xff);
 	    	   System.out.println("Packet No.: " + packetNo);
+	    	   for (j=0;j<len;j++) {
+	    		   System.out.println("byte " + j + " " + receivePacket.getData()[j]);
+	    	   }
 	       }
 	       
+	       if (request.equalsIgnoreCase("WRITE") && quit) 
+	    	   break sendAndReceive;
+	       
 	       if (request.equalsIgnoreCase("READ")){
-	    	   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, data.length));
-	    	   if (data.length < 516)
+	    	   int m;
+	    	   for(m=4; m<(data.length); m++) {
+	    		   if(data[m]==0) {
+	    			   break;
+	    		   }
+	    	   }
+	    	   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, m));
+	    	   if (data[515] == 0)
 	    		   break sendAndReceive;
 	       }
 	       
-	       if (request.equalsIgnoreCase("READ") && i >= fileHandler.getNumSections()) break;
+	       //if (request.equalsIgnoreCase("READ") && i >= fileHandler.getNumSections()) break;
 	       
-	       boolean quit = false;
 	     //Preparing next packet
 	       if(request.equalsIgnoreCase("WRITE")) {
 	    	   int length = 512;
@@ -195,6 +203,8 @@ public class TFTPClient {
 	    	   msg[2] = data[2];
 	    	   msg[3] = data[3];
 	    	   len = 4;
+	    	   if (receivePacket.getLength() < 516)
+		    		quit = true;
 	       }
 	       
 	       try {
@@ -225,7 +235,6 @@ public class TFTPClient {
 	       }
 
 	       // Send the datagram packet to the server via the send/receive socket.
-	
 	       try {
 	           sendReceiveSocket.send(sendPacket);
 	        } catch (IOException e) {
@@ -241,7 +250,7 @@ public class TFTPClient {
 	       i++;
 	        
 	       System.out.println();
-    	   if(quit)
+    	   if(request.equalsIgnoreCase("READ") && quit)
     		   break sendAndReceive;
 	       
        }

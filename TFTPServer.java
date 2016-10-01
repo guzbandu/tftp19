@@ -41,7 +41,7 @@ public class TFTPServer{
 			// Construct a DatagramPacket for receiving packets up
 			// to 100 bytes long (the length of the byte array).
 
-			data = new byte[100];
+			data = new byte[516];
 			receivePacket = new DatagramPacket(data, data.length);
 
 			if(count==0) {
@@ -66,6 +66,7 @@ public class TFTPServer{
 			}
 
 			// Process the received datagram.
+			/*
 			 if (controller.getOutputMode().equals("verbose")){
 				 System.out.println("Server: Packet received:");
 					System.out.println("From host: " + receivePacket.getAddress());
@@ -82,7 +83,7 @@ public class TFTPServer{
 					// Form a String from the byte array.
 					String received = new String(data,0,len);
 					System.out.println(received);				
-			 }
+			 }*/
 			
 
 			// Create a new client connection thread to send the DatagramPacket
