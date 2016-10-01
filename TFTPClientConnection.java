@@ -90,9 +90,7 @@ public class TFTPClientConnection extends Thread {
 		} else {
 			fileHandler = new TFTPReadWrite(filename, "READ");
 		}
-		//filename can change if trying to write to
-		//a file that exists already
-		//filename = fileHandler.getOutFile().getName();
+
 		// Create a response.
 		if (req==Request.READ) { // for Read it's 0301
 			response = new byte[516];
@@ -211,9 +209,6 @@ public class TFTPClientConnection extends Thread {
 				sendPacket = new DatagramPacket(response, response.length,
 						receivePacket.getAddress(), receivePacket.getPort());
 
-				// if ((req == Request.WRITE) && receivePacket.getData().length<516) break;
-
-
 				System.out.println("Server: Sending packet:");
 				if (outputMode.equals("verbose")){
 					System.out.println("To host: " + sendPacket.getAddress());
@@ -238,9 +233,7 @@ public class TFTPClientConnection extends Thread {
 					System.out.println();
 				}
 
-				if (//(req == Request.WRITE) && 
-						quit) break sendAndReceive;
-				//if ((req == Request.READ) && i >= fileHandler.getNumSections()) break sendAndReceive;
+				if (quit) break sendAndReceive;
 				i++;
 			}
 		System.out.println("File transfer complete.");

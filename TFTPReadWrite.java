@@ -18,7 +18,7 @@ public class TFTPReadWrite {
 		inFile = new File(filename);
 		outFilename = "new." + filename;
 		outFile = new File(outFilename);
-		System.out.println("File length: "+inFile.length()+"\n");
+		
 		try {
 			inStream = new FileInputStream(inFile);
 			outStream = new FileOutputStream(outFile);

@@ -20,7 +20,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
-	     //sendReceiveSocket.setSoTimeout(10000);
+	     sendReceiveSocket.setSoTimeout(10000);
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
          System.exit(1);
@@ -179,9 +179,7 @@ public class TFTPClient {
 	    	   if (data[515] == 0)
 	    		   break sendAndReceive;
 	       }
-	       
-	       //if (request.equalsIgnoreCase("READ") && i >= fileHandler.getNumSections()) break;
-	       
+	       	       
 	     //Preparing next packet
 	       if(request.equalsIgnoreCase("WRITE")) {
 	    	   int length = 512;
@@ -243,10 +241,7 @@ public class TFTPClient {
 	        }
 	       if (controller.getOutputMode().equals("verbose"))
 	    	   System.out.println("Client: Packet sent.");
-	
-	       // Construct a DatagramPacket for receiving packets up
-	       // to 100 bytes long (the length of the byte array).
-	
+		
 	       i++;
 	        
 	       System.out.println();
