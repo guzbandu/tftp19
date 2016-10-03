@@ -5,11 +5,13 @@
  
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 
 public class TFTPClient {
 
    private DatagramPacket sendPacket, receivePacket;
    private DatagramSocket sendReceiveSocket;
+   public static Controller controller;
    
    public TFTPClient()
    {
@@ -18,6 +20,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
+	     sendReceiveSocket.setSoTimeout(10000);
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
          System.exit(1);
@@ -26,34 +29,39 @@ public class TFTPClient {
 
    public void sendAndReceive(String request, String filename, String mode)
    {
-	  Controller controller = Controller.controller;
       byte[] msg = new byte[100], // message we send
              fn, // filename as an array of bytes
              md, // mode as an array of bytes
              data; // reply as array of bytes
       int j, len, sendPort;
-      
-      // In the assignment, students are told to send to 23, so just:
-      // sendPort = 23; 
-      // is needed.
-      // However, in the project, the following will be useful, except
-      // that test vs. normal will be entered by the user.
    
-      
+      //If user enters "normal" as the mode
+      //user sends directly to port 69 on the server
+      //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
          sendPort = 69;
       else
          sendPort = 23;
          
        msg[0] = 0;
-       if(request.equals("READ")) 
+       if(request.equalsIgnoreCase("READ")) 
            msg[1]=1;
-       if(request.equals("WRITE")) 
+       if(request.equalsIgnoreCase("WRITE")) 
            msg[1]=2;
-
+       
+       //Create class instance handling file I/O
+       //If client is writing, it's reading from a file, if
+       //client is reading, it's writing to a file
+       TFTPReadWrite fileHandler;
+       if(request.equalsIgnoreCase("READ")) {
+    	   fileHandler = new TFTPReadWrite(filename, "WRITE", this, "Client");
+       } else {
+    	   fileHandler = new TFTPReadWrite(filename, "READ", this, "Client");
+       }
+       
        // convert to bytes
-       fn = filename.getBytes();
-        
+       fn = filename.getBytes(); 
+       
        // and copy into the msg
        System.arraycopy(fn,0,msg,2,fn.length);
        // format is: source array, source index, dest array,
@@ -89,13 +97,14 @@ public class TFTPClient {
        //     same computer). InetAddress.getLocalHost() returns the Internet
        //     address of the local host.
        //  69 - the destination port number on the destination host.
+       
        try {
-          sendPacket = new DatagramPacket(msg, len,
-                               InetAddress.getLocalHost(), sendPort);
-        } catch (UnknownHostException e) {
-           e.printStackTrace();
-           System.exit(1);
-        }
+    	   sendPacket = new DatagramPacket(msg, len,
+    			   InetAddress.getLocalHost(), sendPort);
+       } catch (UnknownHostException e) {
+    	   e.printStackTrace();
+    	   System.exit(1);
+       }
        if (controller.getOutputMode().equals("verbose")){
     	   System.out.println("To host: " + sendPacket.getAddress());
     	   System.out.println("Destination host port: " + sendPacket.getPort());
@@ -105,58 +114,147 @@ public class TFTPClient {
     	   for (j=0;j<len;j++) {
     		   System.out.println("byte " + j + " " + msg[j]);
     	   }
-    	   // Form a String from the byte array, and print the string.
-           String sending = new String(msg,0,len);
-           System.out.println(sending);
        }
-        
-    
        
-       // Send the datagram packet to the server via the send/receive socket.
-
        try {
            sendReceiveSocket.send(sendPacket);
         } catch (IOException e) {
            e.printStackTrace();
            System.exit(1);
         }
+       if (controller.getOutputMode().equals("verbose"))
+    	   System.out.println("Client: Packet sent.");
+       
+       int i = 1;
+       boolean quit = false;
+       //String outFilename = fileHandler.getOutFile().getName();
+       sendAndReceive:
+       while (true) {
+    	   
+    	   data = new byte[516];
+	       receivePacket = new DatagramPacket(data, data.length);
+	       
+	       if (controller.getOutputMode().equals("verbose"))
+	    	   System.out.println("Client: Waiting for packet.");
+	       
+	       try {
+	           // Block until a datagram is received via sendReceiveSocket.
+	           sendReceiveSocket.receive(receivePacket);
+	       } catch (SocketTimeoutException e) {
+	   			if(controller.quit) {
+	   				sendReceiveSocket.close();
+	   				System.exit(0);
+	   			}
+	        } catch(IOException e) {
+	           e.printStackTrace();
+	           System.exit(1);
+	        }
+	    	   
+	
+	       // Process the received datagram.
+	       System.out.println("Client: Packet received:");
+	       if (controller.getOutputMode().equals("verbose")){
+	    	   System.out.println("From host: " + receivePacket.getAddress());
+	    	   System.out.println("Host port: " + receivePacket.getPort());
+	    	   len = receivePacket.getLength();
+	    	   System.out.println("Length: " + len);
+	    	   int packetNo = (int) ((msg[2] << 8) & 0xff) | (msg[3] & 0xff);
+	    	   System.out.println("Packet No.: " + packetNo);
+	    	   for (j=0;j<len;j++) {
+	    		   System.out.println("byte " + j + " " + receivePacket.getData()[j]);
+	    	   }
+	       }
+	       
+	       if (request.equalsIgnoreCase("WRITE") && quit) 
+	    	   break sendAndReceive;
+	       
+	       if (request.equalsIgnoreCase("READ")){
+	    	   int m;
+	    	   for(m=4; m<(data.length); m++) {
+	    		   if(data[m]==0) {
+	    			   break;
+	    		   }
+	    	   }
+	    	   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, m));
+	    	   if (data[515] == 0)
+	    		   break sendAndReceive;
+	       }
+	       	       
+	     //Preparing next packet
+	       if(request.equalsIgnoreCase("WRITE")) {
+	    	   int length = 512;
+	    	   if (i == fileHandler.getNumSections())
+	    		   length = fileHandler.getFileLength() - ((fileHandler.getNumSections()-1) * 512);
+	    	   msg = new byte[516];
+	    	   msg[0] = 0;
+	    	   msg[1] = 3;
+	    	   msg[2] = (byte) ((i >> 8)& 0xff);
+	    	   msg[3] = (byte) (i & 0xff);
+	    	   System.arraycopy(fileHandler.readFileBytes(length), 0, msg, 4, length);
+	    	   len = length+4;
+	    	   if(i >= fileHandler.getNumSections() )
+	    		   quit = true;
+	       } else if(request.equalsIgnoreCase("READ")) {
+	    	   msg = new byte[4];
+	    	   msg[0] = 0;
+	    	   msg[1] = 4;
+	    	   msg[2] = data[2];
+	    	   msg[3] = data[3];
+	    	   len = 4;
+	    	   if (receivePacket.getLength() < 516)
+		    		quit = true;
+	       }
+	       
+	       try {
+	    	   sendPacket = new DatagramPacket(msg, len,
+	    			   InetAddress.getLocalHost(), receivePacket.getPort());
+	       } catch (UnknownHostException e) {
+	    	   e.printStackTrace();
+	    	   System.exit(1);
+	       }
+	       if (controller.getOutputMode().equals("verbose")){
+	    	   System.out.println("To host: " + sendPacket.getAddress());
+	    	   System.out.println("Destination host port: " + sendPacket.getPort());
+	    	   len = sendPacket.getLength();
+	    	   System.out.println("Length: " + len);
+	    	   for (j=0;j<len;j++) {
+	    		   System.out.println("byte " + j + " " + msg[j]);
+	    	   }
+	    	   int packetNo1 = (int) msg[3];
+	    	   int packetNo2 = (int) msg[2];
+	    	   if (packetNo1 < 0)
+	    		   packetNo1 += 256;
+	    	   if (packetNo2 < 0)
+	    		   packetNo2 += 256;
+	    	   System.out.println("Packet No.: " + packetNo1 + " " + packetNo2);
+	    	   // Form a String from the byte array, and print the string.
+	           String sending = new String(msg,0,len);
+	           System.out.println(sending);
+	       }
 
-       System.out.println("Client: Packet sent.");
-
-       // Construct a DatagramPacket for receiving packets up
-       // to 100 bytes long (the length of the byte array).
-
-       data = new byte[100];
-       receivePacket = new DatagramPacket(data, data.length);
-
-       System.out.println("Client: Waiting for packet.");
-       try {
-           // Block until a datagram is received via sendReceiveSocket.
-           sendReceiveSocket.receive(receivePacket);
-        } catch(IOException e) {
-           e.printStackTrace();
-           System.exit(1);
-        }
-
-       // Process the received datagram.
-       System.out.println("Client: Packet received:");
-       if (controller.getOutputMode().equals("verbose")){
-    	   System.out.println("From host: " + receivePacket.getAddress());
-    	   System.out.println("Host port: " + receivePacket.getPort());
-    	   len = receivePacket.getLength();
-    	   System.out.println("Length: " + len);
-    	   System.out.println("Containing: ");
-    	   for (j=0;j<len;j++) {
-    		   System.out.println("byte " + j + " " + data[j]);
-    	   }
+	       // Send the datagram packet to the server via the send/receive socket.
+	       try {
+	           sendReceiveSocket.send(sendPacket);
+	        } catch (IOException e) {
+	           e.printStackTrace();
+	           System.exit(1);
+	        }
+	       if (controller.getOutputMode().equals("verbose"))
+	    	   System.out.println("Client: Packet sent.");
+		
+	       i++;
+	        
+	       System.out.println();
+    	   if(request.equalsIgnoreCase("READ") && quit)
+    		   break sendAndReceive;
+	       
        }
-        
-       System.out.println();
-
-      // We're finished, so close the socket.
-      sendReceiveSocket.close();
+       System.out.println("File Transfer Complete");
    }
 
    public static void main(String args[]){
+	   TFTPClient client = new TFTPClient();
+		controller = new Controller(client);
+		controller.start();
    }
 }

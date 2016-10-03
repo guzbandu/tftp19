@@ -10,11 +10,15 @@ import java.io.*;
 import java.net.*; 
 import java.util.*;
 
-public class TFTPSim extends Thread{
+public class TFTPSim{
    
    // UDP datagram packets and sockets used to send / receive
-   private DatagramPacket sendPacket, receivePacket;
-   private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
+   private DatagramPacket sendPacket;
+   private DatagramPacket receivePacket;
+   private DatagramSocket receiveSocket;
+   private DatagramSocket sendSocket;
+   private DatagramSocket sendReceiveSocket;
+   public static Controller controller;
    
    public TFTPSim()
    {
@@ -33,9 +37,8 @@ public class TFTPSim extends Thread{
       }
    }
 
-   public void run()
+   public void relayPacket()
    {
-	  Controller controller = Controller.controller;
       byte[] data;
       
       int clientPort, j=0, len;
@@ -203,6 +206,9 @@ public class TFTPSim extends Thread{
    }
 
    public static void main( String args[] ){
-
+	   TFTPSim sim = new TFTPSim();
+	   controller = new Controller(sim);
+	   controller.start();
+	   sim.relayPacket();
    }
 }
