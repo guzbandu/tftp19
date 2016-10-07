@@ -2,18 +2,18 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class Controller extends Thread{
-	private String outputMode = "verbose";
+	private String outputMode = "quiet";
 	private String runMode = "normal";
 	private String transferMode = "OCTET";
 	public boolean quit = false;
 	private String user;
+	private String path = "";
 
 	public static TFTPClient client;
 
 	
 	public Controller(TFTPClient client){
 		this.user = "Client";
-		this.client = client;
 	}
 	
 	public Controller(TFTPSim sim){
@@ -36,6 +36,7 @@ public class Controller extends Thread{
 		if(user.equals("Client")){
 			System.out.println("Run Mode:\t" + runMode);
 		}
+		System.out.println("Path:\t" + path);
 		System.out.print("\nTo set output mode type 'verbose' or 'quiet'");
 		if(user.equals("Client")){
 			System.out.print("\nTo set run mode type 'normal' or 'test'");
@@ -53,6 +54,11 @@ public class Controller extends Thread{
         if(command.equals("quiet")){
         	outputMode = "quiet";
         }
+        if(command.equals("path")) {
+        	System.out.println("\nEnter a file path (Replace \\ with \\\\ or /):");
+        	String path = scanner.nextLine();
+        	System.out.println();
+        }
 		if(user.equals("Client")){
 			if(command.equals("normal")){
 				runMode = "normal";
@@ -65,19 +71,23 @@ public class Controller extends Thread{
 				String filename = scanner.nextLine();
 				System.out.println();
 				TFTPClient c = new TFTPClient();
-				client.sendAndReceive("READ", filename, transferMode);
+				c.sendAndReceive("READ", filename, transferMode);
 			}
 			if(command.equals("write")){
 				System.out.print("\nEnter a file name:");
 				String filename = scanner.nextLine();
 				System.out.println();
             	TFTPClient c = new TFTPClient();
-            	client.sendAndReceive("WRITE", filename, transferMode);
+            	c.sendAndReceive("WRITE", filename, transferMode);
 			}
 		}
         if(command.equals("quit")){
         	quit = true;
         }
+	}
+	
+	public String getPath() {
+		return path;
 	}
 	
 	public String getOutputMode() {

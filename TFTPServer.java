@@ -23,7 +23,8 @@ public class TFTPServer{
 			// on the local host machine. This socket will be used to
 			// receive UDP Datagram packets.
 			receiveSocket = new DatagramSocket(69);
-			receiveSocket.setSoTimeout(10000);
+			receiveSocket.setSoTimeout(100);
+			count=0;
 		} catch (SocketException se) {
 			se.printStackTrace();
 			System.exit(1);
@@ -37,26 +38,53 @@ public class TFTPServer{
 		int len, j=0;
 
 		for(;;) { // loop forever
-
 			// Construct a DatagramPacket for receiving packets up
-			// to 516 bytes long (the length of the byte array).
+			// to 100 bytes long (the length of the byte array).
+
 			data = new byte[516];
 			receivePacket = new DatagramPacket(data, data.length);
 
-			// Block until a datagram packet is received from receiveSocket.
-			try {
-				receiveSocket.receive(receivePacket);
-			} catch (SocketTimeoutException e) {
-				if(controller.quit) {
-					receiveSocket.close();
-					System.exit(0);
-				} else {
-					this.receiveAndSend();
+			if(count==0) {
+				if (controller.getOutputMode().equals("verbose")){
+					System.out.println("Server: Waiting for packet.");
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
 			}
+			// Block until a datagram packet is received from receiveSocket.
+			while (true) {
+				try {
+					receiveSocket.receive(receivePacket);
+					break;
+				} catch (SocketTimeoutException e) {
+					count++;
+					if(controller.quit) {
+						receiveSocket.close();
+						System.exit(0);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+			}
+
+			// Process the received datagram.
+			if (controller.getOutputMode().equals("verbose")) {
+				System.out.println("Server: Packet received:");
+				System.out.println("From host: " + receivePacket.getAddress());
+				System.out.println("Host port: " + receivePacket.getPort());
+				len = receivePacket.getLength();
+				System.out.println("Length: " + len);
+				System.out.println("Containing: " );
+
+				// print the bytes
+				for (j=0;j<len;j++) {
+					System.out.println("byte " + j + " " + data[j]);
+				}
+
+				// Form a String from the byte array.
+				String received = new String(data,0,len);
+				System.out.println(received);				
+			}
+
 
 			// Create a new client connection thread to send the DatagramPacket
 			Thread clientConnection = 
@@ -64,7 +92,7 @@ public class TFTPServer{
 
 			clientConnection.start();
 			count=0;
-			
+
 		} // end of loop
 
 	}
