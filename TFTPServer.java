@@ -23,7 +23,7 @@ public class TFTPServer{
 			// on the local host machine. This socket will be used to
 			// receive UDP Datagram packets.
 			receiveSocket = new DatagramSocket(69);
-			receiveSocket.setSoTimeout(100);
+			//receiveSocket.setSoTimeout(100);
 			count=0;
 		} catch (SocketException se) {
 			se.printStackTrace();

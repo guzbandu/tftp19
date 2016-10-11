@@ -12,7 +12,7 @@ public class TFTPReadWrite {
 	private int numSections;
 	private int fileLength;
 	
-	public TFTPReadWrite(String filename, String mode, String path, String userType) {
+	public TFTPReadWrite(String filename, String mode, String path, String userType) throws TFTPException {
 		this.filename = filename;
 		if (path != "") {
 			String[] pathArr = filename.split("\\\\|/");
@@ -21,6 +21,9 @@ public class TFTPReadWrite {
 		file = new File(path + filename);
 		if (mode.equals("WRITE")) {
 			try {
+				if(file.exists()){
+					throw new TFTPException(6,"Error Code #6: File Already Exists");
+				}
 				file.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -57,7 +60,8 @@ public class TFTPReadWrite {
 		
 		return fileBytes;
 	}
-	public void writeFilesBytes(byte[] fileBytes) {
+	
+	public void writeFilesBytes(byte[] fileBytes) throws TFTPException {
 		try {
 			outStream.write(fileBytes, 0, fileBytes.length);
 		} catch (IOException e){

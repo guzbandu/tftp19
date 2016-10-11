@@ -47,8 +47,11 @@ public class TFTPClientConnection extends Thread {
 		boolean quit = false;
 
 		Request req; // READ, WRITE or ERROR
-
+		
+		//TODO use this instead of static
 		String path = controller.getPath();
+		//String path = "server/";
+		
 		String filename = "";
 		String mode;
 		int len = receivePacket.getLength();
@@ -92,15 +95,27 @@ public class TFTPClientConnection extends Thread {
 			try{
 				fileHandler = new TFTPReadWrite(filename, "WRITE", path, "Client Connection");
 			}catch(TFTPException e){
+				response = new byte[516];
 				byte[] error = e.getErrorBytes();
-				return;
+				System.arraycopy(error, 0, response, 0, error.length);
+				req=Request.ERROR;
+				fileHandler = null;
+				quit = true;
 			}
 		} else {
 			try{
 				fileHandler = new TFTPReadWrite(filename, "READ", path, "Client Connection");
 			}catch(TFTPException e){
+				response = new byte[516];
 				byte[] error = e.getErrorBytes();
-				return;
+				int n;
+				for(n=4;n<error.length;n++){
+					if(error[n]==0) break;
+				}
+				System.arraycopy(error, 0, response, 0, n);
+				req=Request.ERROR;
+				fileHandler = null;
+				quit = true;
 			}
 		}
 
@@ -115,9 +130,9 @@ public class TFTPClientConnection extends Thread {
 			System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
 		} else if (req==Request.WRITE) { // for Write it's 0400
 			response = writeResp;
-		} else { // it was invalid, just quit
-			throw new RuntimeException("Not yet implemented");
-		}
+		} //else { // it was invalid, just quit
+			//throw new RuntimeException("Not yet implemented");
+		//}
 
 		// Construct a datagram packet that is to be sent to a specified port
 		// on a specified host.
@@ -222,7 +237,18 @@ public class TFTPClientConnection extends Thread {
 				response[2] = data[2];
 				response[3] = data[3];
 				len = 4;
-				fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
+				/*
+				int m;
+				for(m=4;m<receivePacket.getLength();m++){
+					if(receivePacket.getData()[m]==0) break;
+				}
+				if(m<receivePacket.getLength()) {
+					byte[] shortPacket = new byte[m];
+					System.arraycopy(receivePacket, 0, shortPacket, 4, m);
+					fileHandler.writeFilesBytes(receivePacket.getData());
+				} else { */
+					fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
+				//}
 			}
 
 			sendPacket = new DatagramPacket(response, response.length,
