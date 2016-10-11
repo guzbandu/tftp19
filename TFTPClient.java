@@ -22,7 +22,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
-	     sendReceiveSocket.setSoTimeout(10000);
+	     //sendReceiveSocket.setSoTimeout(10000);
 		 count=0;
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
@@ -41,14 +41,14 @@ public class TFTPClient {
       boolean full = false; //Used for the disk fills condition
       //TODO: use this instead of static
       //String path = controller.getPath();
-      String path = ".\\client\\";
-      //String path = "/Volumes/Lexar/client/";
+      //String path = ".\\client\\";
+      String path = "/Volumes/Lexar/client/";
       
       //If user enters "normal" as the mode
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
          sendPort = 23;
          
@@ -66,14 +66,14 @@ public class TFTPClient {
     	   try{
     		   fileHandler = new TFTPReadWrite(filename, "WRITE", path, "Client");
     	   }catch(TFTPException e){
-    		   System.out.println("The specified file " + path + filename + " was not found.\n");
+    		   System.out.println("The specified file " + path + filename + " already exists.");
     		   return;
     	   }
        } else {
     	   try{
     		   fileHandler = new TFTPReadWrite(filename, "READ", path, "Client");
     	   }catch(TFTPException e){
-    		   System.out.println("The specified file " + path + filename + " already exists.");
+    		   System.out.println("The specified file " + path + filename + " was not found.\n");
     		   return;
     	   }
        }
