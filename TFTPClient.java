@@ -190,11 +190,11 @@ public class TFTPClient {
 	    	   quit = true;
 	       }
 	       
-	       if (request.equalsIgnoreCase("READ")){
+	       //Don't write once full just wait until the server stops sending packets potentially allowing the server to finish properly
+	       if (request.equalsIgnoreCase("READ")&&!full){
 	    	   try {
 	    		   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, len));
 	    	   } catch (TFTPException e) {
-	    		   //This error will repeat until the server stops sending packets potentially allowing the server to finish properly
 	    		   if(!full) {
 	    			   System.out.println("The disk ran out of space while reading was in progress please wait for transmission to end.");
 	    			   full = true;
