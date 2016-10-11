@@ -247,7 +247,15 @@ public class TFTPClientConnection extends Thread {
 					System.arraycopy(receivePacket, 0, shortPacket, 4, m);
 					fileHandler.writeFilesBytes(receivePacket.getData());
 				} else { */
-					fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
+				    try {
+				    	fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
+				    } catch(TFTPException e) {
+						response = new byte[516];
+						byte[] error = e.getErrorBytes();
+						System.arraycopy(error, 0, response, 0, error.length);
+						req=Request.ERROR;
+						quit = true;
+					}
 				//}
 			}
 

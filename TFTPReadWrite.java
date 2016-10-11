@@ -50,12 +50,12 @@ public class TFTPReadWrite {
 		numSections = (int)(file.length()/512)+1;
 	}
 	
-	public byte[] readFileBytes(int length) {
+	public byte[] readFileBytes(int length) throws TFTPException {
 		byte[] fileBytes = new byte[512];
 		try  {
 			inStream.read(fileBytes, 0, length);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new TFTPException(2,"Error Code #2: Access Violation");
 		}
 		
 		return fileBytes;

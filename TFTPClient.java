@@ -22,7 +22,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
-	     //sendReceiveSocket.setSoTimeout(10000);
+	     sendReceiveSocket.setSoTimeout(10000);
 		 count=0;
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
@@ -38,9 +38,11 @@ public class TFTPClient {
              data; // reply as array of bytes
       int j, len, sendPort;
       boolean quit = false; //Used for exit condition
+      boolean full = false; //Used for the disk fills condition
       //TODO: use this instead of static
       //String path = controller.getPath();
       String path = ".\\client\\";
+      //String path = "/Volumes/Lexar/client/";
       
       //If user enters "normal" as the mode
       //user sends directly to port 69 on the server
@@ -51,7 +53,7 @@ public class TFTPClient {
          sendPort = 23;
          
        msg[0] = 0;
-       if(request.equalsIgnoreCase("READ")) 
+       if(request.equalsIgnoreCase("READ"))
            msg[1]=1;
        if(request.equalsIgnoreCase("WRITE")) 
            msg[1]=2;
@@ -64,15 +66,15 @@ public class TFTPClient {
     	   try{
     		   fileHandler = new TFTPReadWrite(filename, "WRITE", path, "Client");
     	   }catch(TFTPException e){
-				byte[] error = e.getErrorBytes();
-				return;
+    		   System.out.println("The specified file " + path + filename + " was not found.\n");
+    		   return;
     	   }
        } else {
     	   try{
     		   fileHandler = new TFTPReadWrite(filename, "READ", path, "Client");
     	   }catch(TFTPException e){
-				byte[] error = e.getErrorBytes();
-				return;
+    		   System.out.println("The specified file " + path + filename + " already exists.");
+    		   return;
     	   }
        }
        
@@ -149,7 +151,7 @@ public class TFTPClient {
     	   data = new byte[516];
 	       receivePacket = new DatagramPacket(data, data.length);
 	       
-	       if (controller.getOutputMode().equals("verbose"))
+	       if (controller.getOutputMode().equals("verbose")&&!full)
 	    	   System.out.println("Client: Waiting for packet.");
 	       
 	       try {
@@ -164,13 +166,14 @@ public class TFTPClient {
 	           e.printStackTrace();
 	           System.exit(1);
 	        }
-	       System.out.println(receivePacket.getPort());
+	       if(!full) System.out.println(receivePacket.getPort());
 	    	   
 	       
 	       // Process the received datagram.
 	       len = receivePacket.getLength();
-	       System.out.println("Client: Packet received:");
-	       if (controller.getOutputMode().equals("verbose")){
+	       if(!full)
+	    	   System.out.println("Client: Packet received:");
+	       if (controller.getOutputMode().equals("verbose")&&!full){
 	    	   System.out.println("From host: " + receivePacket.getAddress());
 	    	   System.out.println("Host port: " + receivePacket.getPort());
 	    	   System.out.println("Length: " + len);
@@ -188,8 +191,17 @@ public class TFTPClient {
 	       }
 	       
 	       if (request.equalsIgnoreCase("READ")){
-	    	   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, len));
-	    	   System.out.println("Data length: " + len);
+	    	   try {
+	    		   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, len));
+	    	   } catch (TFTPException e) {
+	    		   //This error will repeat until the server stops sending packets potentially allowing the server to finish properly
+	    		   if(!full) {
+	    			   System.out.println("The disk ran out of space while reading was in progress please wait for transmission to end.");
+	    			   full = true;
+	    		   }
+	    	   }
+	    	   if(!full)
+	    		   System.out.println("Data length: " + len);
 	    	   if (len < 516)
 	    		   break;
 	       }
@@ -206,7 +218,19 @@ public class TFTPClient {
 	    	   msg[1] = 4;
 	    	   msg[2] = (byte) ((i >> 8)& 0xff);
 	    	   msg[3] = (byte) (i & 0xff);
-	    	   System.arraycopy(fileHandler.readFileBytes(length), 0, msg, 4, length);
+	    	   try {
+	    		   System.arraycopy(fileHandler.readFileBytes(length), 0, msg, 4, length);
+	    	   } catch (TFTPException e) {
+	    		   System.out.println("Unable to access either the parent directory or file " + path + filename + "\n" );
+	    		   length = 0;
+		    	   msg = new byte[4];
+		    	   msg[0] = 0;
+		    	   msg[1] = 4;
+		    	   msg[2] = (byte) ((i >> 8)& 0xff);
+		    	   msg[3] = (byte) (i & 0xff);	    		   
+	    		   quit = true;
+	    		   //Make this the final packet to the server and just send an empty string.
+	    	   }
 	    	   len = length+4;
 	    	   System.out.println(length);
 	    	   if(i >= fileHandler.getNumSections() )
@@ -228,8 +252,8 @@ public class TFTPClient {
 		    	   e.printStackTrace();
 		    	   System.exit(1);
 		       }
-		       System.out.println(sendPacket.getPort());
-		       if (controller.getOutputMode().equals("verbose")){
+		       if(!full) System.out.println(sendPacket.getPort());
+		       if (controller.getOutputMode().equals("verbose")&&!full){
 		    	   System.out.println("To host: " + sendPacket.getAddress());
 		    	   System.out.println("Destination host port: " + sendPacket.getPort());
 		    	   len = sendPacket.getLength();
@@ -253,15 +277,16 @@ public class TFTPClient {
 		           e.printStackTrace();
 		           System.exit(1);
 		        }
-		       if (controller.getOutputMode().equals("verbose"))
+		       if (controller.getOutputMode().equals("verbose")&&!full)
 		    	   System.out.println("Client: Packet sent.");
 		
 		       // Construct a DatagramPacket for receiving packets up
 		       // to 100 bytes long (the length of the byte array).
 		
 		       i++;
-		        
-		       System.out.println();
+		       
+		       if(!full)
+		    	   System.out.println();
 	       }
        }
        System.out.println("File Transfer Complete");
