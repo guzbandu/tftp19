@@ -43,6 +43,7 @@ public class TFTPClient {
       //String path = controller.getPath();
       //String path = ".\\client\\";
       String path = "/Volumes/Lexar/client/";
+      //String path = "client/";
       
       //If user enters "normal" as the mode
       //user sends directly to port 69 on the server
@@ -204,6 +205,9 @@ public class TFTPClient {
 	    		   System.out.println("Data length: " + len);
 	    	   if (len < 516)
 	    		   break;
+	       }
+	       if(full&&len<516) {
+	    	   break;
 	       }
 	       
 	       if(!request.equalsIgnoreCase("ERROR")) quit = false;
