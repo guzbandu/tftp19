@@ -22,8 +22,8 @@ public class TFTPServer{
 			// Construct a datagram socket and bind it to port 69
 			// on the local host machine. This socket will be used to
 			// receive UDP Datagram packets.
-			receiveSocket = new DatagramSocket(2069);
-			//receiveSocket.setSoTimeout(100);
+			receiveSocket = new DatagramSocket(69);
+			receiveSocket.setSoTimeout(100);
 			count=0;
 		} catch (SocketException se) {
 			se.printStackTrace();

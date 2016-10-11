@@ -49,8 +49,8 @@ public class TFTPClientConnection extends Thread {
 		Request req; // READ, WRITE or ERROR
 		
 		//TODO use this instead of static
-		//String path = controller.getPath();
-		String path = "server/";
+		String path = controller.getPath();
+		//String path = "/Volumes/Lexar/client/";
 		
 		String filename = "";
 		String mode;

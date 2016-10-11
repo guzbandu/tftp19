@@ -22,7 +22,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
-	     //sendReceiveSocket.setSoTimeout(10000);
+	     sendReceiveSocket.setSoTimeout(10000);
 		 count=0;
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
@@ -41,15 +41,15 @@ public class TFTPClient {
       boolean full = false; //Used for the disk fills condition
       //TODO: use this instead of static
       //String path = controller.getPath();
-      //String path = ".\\client\\";
-      String path = "/Volumes/Lexar/client/";
+      String path = ".\\client\\";
+      //String path = "/Volumes/Lexar/client/";
       //String path = "client/";
       
       //If user enters "normal" as the mode
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 2069;
+         sendPort = 69;
       else
          sendPort = 23;
          
