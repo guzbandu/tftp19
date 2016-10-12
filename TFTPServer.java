@@ -38,8 +38,6 @@ public class TFTPServer{
 		int len, j=0;
 
 		for(;;) { // loop forever
-			// Construct a DatagramPacket for receiving packets up
-			// to 100 bytes long (the length of the byte array).
 
 			data = new byte[516];
 			receivePacket = new DatagramPacket(data, data.length);
@@ -49,14 +47,28 @@ public class TFTPServer{
 					System.out.println("Server: Waiting for packet.");
 				}
 			}
-			// Block until a datagram packet is received from receiveSocket.
+			// Block until a datagram packet is received from receiveSocket or the quit command is issued
 			while (true) {
+				if(controller.quit) {
+					receiveSocket.close();
+				}
+
 				try {
-					receiveSocket.receive(receivePacket);
-					break;
+					if(!controller.quit) {
+						receiveSocket.receive(receivePacket);
+						break;
+					}
 				} catch (SocketTimeoutException e) {
 					count++;
 					if(controller.quit) {
+						//wait until all threads have completed
+						while(Thread.activeCount()>1) {
+							try {
+								Thread.sleep(5);
+							} catch (InterruptedException ie) {
+								return;							
+							}
+						}
 						receiveSocket.close();
 						System.exit(0);
 					}
@@ -67,7 +79,7 @@ public class TFTPServer{
 			}
 
 			// Process the received datagram.
-			if (controller.getOutputMode().equals("verbose")) {
+			if (controller.getOutputMode().equals("verbose")&&!controller.quit) {
 				System.out.println("Server: Packet received:");
 				System.out.println("From host: " + receivePacket.getAddress());
 				System.out.println("Host port: " + receivePacket.getPort());
@@ -86,14 +98,17 @@ public class TFTPServer{
 			}
 
 
-			// Create a new client connection thread to send the DatagramPacket
-			Thread clientConnection = 
+			// Create a new client connection thread to send the DatagramPacket unless the quit command has been received
+			if(!controller.quit) {
+				Thread clientConnection = 
 					new TFTPClientConnection("Client Connection Thread", receivePacket, controller.getOutputMode());
-
-			clientConnection.start();
-			count=0;
+				clientConnection.start();
+				count=0;
+			}			
 
 		} // end of loop
+		
+		//TODO check if there are threads still open and wait for them to finish or set a timeout
 
 	}
 
