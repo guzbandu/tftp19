@@ -56,7 +56,7 @@ public class Controller extends Thread{
         }
         if(command.equals("path")) {
         	System.out.println("\nEnter a file path (Replace \\ with \\\\ or /):");
-        	String path = scanner.nextLine();
+        	path = scanner.nextLine();
         	System.out.println();
         }
 		if(user.equals("Client")){

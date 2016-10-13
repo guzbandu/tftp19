@@ -39,11 +39,7 @@ public class TFTPClient {
       int j, len, sendPort;
       boolean quit = false; //Used for exit condition
       boolean full = false; //Used for the disk fills condition
-      //TODO: use this instead of static
-      //String path = controller.getPath();
-      String path = ".\\client\\";
-      //String path = "/Volumes/Lexar/client/";
-      //String path = "client/";
+      String path = controller.getPath();
       
       //If user enters "normal" as the mode
       //user sends directly to port 69 on the server
