@@ -35,14 +35,12 @@ public class TFTPReadWrite {
 			}
 		} else {
 			try {
-				inStream = new FileInputStream(file);
-			} catch (FileNotFoundException e) {
-				if(userType.equals("Client")){
+				if(!file.exists()){
 					throw new TFTPException(1,"Error Code #1: File not found");
 				}
-				if(userType.equals("Client Connection")){ 
-					throw new TFTPException(2,"Error Code #2: Access Violation");
-				}
+				inStream = new FileInputStream(file);
+			} catch (FileNotFoundException e) {
+				throw new TFTPException(2,"Error Code #2: Access Violation");
 			}
 		}
 		//Variables for reading
