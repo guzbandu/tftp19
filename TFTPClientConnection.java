@@ -226,8 +226,16 @@ public class TFTPClientConnection extends Thread {
 				response[1] = 3;
 				response[2] = (byte) ((i >> 8)& 0xff);
 				response[3] = (byte) (i & 0xff);
-				System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
-				len = length+4;
+				try {
+					System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
+					len = length+4;
+				} catch (TFTPException e) {
+						response = new byte[516];
+						byte[] error = e.getErrorBytes();
+						System.arraycopy(error, 0, response, 0, error.length);
+						req=Request.ERROR;
+						quit = true;
+				}
 			} else if(req == Request.WRITE) {
 				response = new byte[4];
 				response[0] = 0;
