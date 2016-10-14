@@ -12,6 +12,15 @@ public class TFTPReadWrite {
 	private int numSections;
 	private int fileLength;
 	
+	/*
+	 * Arguments:
+	 * 	-String filename: file to be opened
+	 * 	-String mode: specifies type of stream to be opened
+	 * 	  on the file (read or write)
+	 * 	-String path: path that file is found in
+	 * 	-String userType: type of user using the object (client or server, not currently
+	 *    being used, for debug)
+	 */
 	public TFTPReadWrite(String filename, String mode, String path, String userType) throws TFTPException {
 		this.filename = filename;
 		if (path != "") {
@@ -19,6 +28,7 @@ public class TFTPReadWrite {
 			filename = pathArr[pathArr.length - 1];
 		}
 		file = new File(path + filename);
+		//Opening file and streams, throws exceptions on errors using error packet class
 		if (mode.equals("WRITE")) {
 			try {
 				if(file.exists()){
@@ -43,11 +53,13 @@ public class TFTPReadWrite {
 				throw new TFTPException(2,"Error Code #2: Access Violation");
 			}
 		}
+		
 		//Variables for reading
 		fileLength = (int)file.length();
 		numSections = (int)(file.length()/512)+1;
 	}
 	
+	//Reads length bytes from file
 	public byte[] readFileBytes(int length) throws TFTPException {
 		byte[] fileBytes = new byte[512];
 		try  {
@@ -59,6 +71,7 @@ public class TFTPReadWrite {
 		return fileBytes;
 	}
 	
+	//Writes bytes into file
 	public void writeFilesBytes(byte[] fileBytes) throws TFTPException {
 		try {
 			outStream.write(fileBytes, 0, fileBytes.length);

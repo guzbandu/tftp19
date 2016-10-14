@@ -113,7 +113,7 @@ public class TFTPClient {
        //     same computer). InetAddress.getLocalHost() returns the Internet
        //     address of the local host.
        //  69 - the destination port number on the destination host.
-       
+       //Sending packet
        try {
     	   sendPacket = new DatagramPacket(msg, len,
     			   InetAddress.getLocalHost(), sendPort);
@@ -121,6 +121,7 @@ public class TFTPClient {
     	   e.printStackTrace();
     	   System.exit(1);
        }
+       //Output for sending packet
        if (controller.getOutputMode().equals("verbose")){
     	   System.out.println("To host: " + sendPacket.getAddress());
     	   System.out.println("Destination host port: " + sendPacket.getPort());
@@ -132,6 +133,7 @@ public class TFTPClient {
     	   }
        }
        
+       //Sending initial request packet
        try {
            sendReceiveSocket.send(sendPacket);
         } catch (IOException e) {
@@ -142,7 +144,7 @@ public class TFTPClient {
     	   System.out.println("Client: Packet sent.");
        
        int i = 1;
-
+       //Main loop
        while (!quit) {
 
     	   data = new byte[516];
@@ -150,7 +152,7 @@ public class TFTPClient {
 	       
 	       if (controller.getOutputMode().equals("verbose")&&!full)
 	    	   System.out.println("Client: Waiting for packet.");
-	       
+	       //Receiving packet
 	       try {
 	           // Block until a datagram is received via sendReceiveSocket.
 	           sendReceiveSocket.receive(receivePacket);
@@ -163,7 +165,6 @@ public class TFTPClient {
 	           e.printStackTrace();
 	           System.exit(1);
 	        }
-	       if(!full) System.out.println(receivePacket.getPort());
 	    	   
 	       
 	       // Process the received datagram.
@@ -178,6 +179,7 @@ public class TFTPClient {
 	    	   System.out.println("Packet No.: " + packetNo);
 	       }
 	       
+	       //Checking for error packets
 	       if(5 == (int)((data[0] << 8) + data[1])) {
 	    	   request = "ERROR";
 	    	   System.out.print("Error from the server ");
@@ -202,10 +204,12 @@ public class TFTPClient {
 	    	   if (len < 516)
 	    		   break;
 	       }
+	       //Exit on disk full but transfer complete
 	       if(full&&len<516) {
 	    	   break;
 	       }
 	       
+	       //Doesn't reset quit condition if error packet sent
 	       if(!request.equalsIgnoreCase("ERROR")) quit = false;
 	     
 	       //Preparing next packet
@@ -220,7 +224,7 @@ public class TFTPClient {
 	    	   msg[3] = (byte) (i & 0xff);
 	    	   try {
 	    		   System.arraycopy(fileHandler.readFileBytes(length), 0, msg, 4, length);
-	    	   } catch (TFTPException e) {
+	    	   } catch (TFTPException e) { //Error
 	    		   System.out.println("Unable to access either the parent directory or file " + path + filename + "\n" );
 	    		   length = 0;
 		    	   msg = new byte[4];
@@ -232,7 +236,6 @@ public class TFTPClient {
 	    		   //Make this the final packet to the server and just send an empty string.
 	    	   }
 	    	   len = length+4;
-	    	   System.out.println(length);
 	    	   if(i >= fileHandler.getNumSections() )
 	    		   quit = true;
 	       } else if(request.equalsIgnoreCase("READ")) {
@@ -245,6 +248,7 @@ public class TFTPClient {
 	       }
 	       
 	       if(!request.equalsIgnoreCase("ERROR")) {
+	    	   //Sending packet
 		       try {
 		    	   sendPacket = new DatagramPacket(msg, len,
 		    			   InetAddress.getLocalHost(), receivePacket.getPort());
@@ -252,7 +256,7 @@ public class TFTPClient {
 		    	   e.printStackTrace();
 		    	   System.exit(1);
 		       }
-		       if(!full) System.out.println(sendPacket.getPort());
+		       //Output for sending packet
 		       if (controller.getOutputMode().equals("verbose")&&!full){
 		    	   System.out.println("To host: " + sendPacket.getAddress());
 		    	   System.out.println("Destination host port: " + sendPacket.getPort());

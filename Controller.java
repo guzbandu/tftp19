@@ -11,7 +11,8 @@ public class Controller extends Thread{
 
 	public static TFTPClient client;
 
-	
+	//Initialized by class passed in, used to determine
+	//what options user has access to
 	public Controller(TFTPClient client){
 		this.user = "Client";
 	}
@@ -24,12 +25,17 @@ public class Controller extends Thread{
 		this.user = "Server";
 	}
 	
+	//Main loop
 	public synchronized void run(){
 		while(!quit){
 			getInput();
 		}
 	}
 	
+	/*
+	 * Prompts and code for user input, certain options
+	 * can only be selected by a client user
+	 */
 	public void getInput(){
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("Output Mode:\t" + outputMode);
@@ -59,6 +65,7 @@ public class Controller extends Thread{
         	path = scanner.nextLine();
         	System.out.println();
         }
+        //Client input
 		if(user.equals("Client")){
 			if(command.equals("normal")){
 				runMode = "normal";
@@ -81,8 +88,10 @@ public class Controller extends Thread{
             	c.sendAndReceive("WRITE", filename, transferMode);
 			}
 		}
+		
         if(command.equals("quit")){
         	quit = true;
+        	scanner.close();
         }
 	}
 	
@@ -95,7 +104,5 @@ public class Controller extends Thread{
 	}
 	public String getRunMode() {
 		return runMode;
-	}
-	public static void main( String args[] ) throws Exception{
 	}
 }

@@ -47,9 +47,9 @@ public class TFTPClientConnection extends Thread {
 		boolean quit = false;
 
 		Request req; // READ, WRITE or ERROR
-		
+
 		String path = controller.getPath();
-		
+
 		String filename = "";
 		String mode;
 		int len = receivePacket.getLength();
@@ -128,9 +128,7 @@ public class TFTPClientConnection extends Thread {
 			System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
 		} else if (req==Request.WRITE) { // for Write it's 0400
 			response = writeResp;
-		} //else { // it was invalid, just quit
-			//throw new RuntimeException("Not yet implemented");
-		//}
+		} 
 
 		// Construct a datagram packet that is to be sent to a specified port
 		// on a specified host.
@@ -151,7 +149,7 @@ public class TFTPClientConnection extends Thread {
 		//     packet.
 		sendPacket = new DatagramPacket(response, response.length,
 				receivePacket.getAddress(), receivePacket.getPort());
-
+		//Output packet to send
 		System.out.println("Server: Sending packet:");
 		if (outputMode.equals("verbose")){
 			System.out.println("To host: " + sendPacket.getAddress());
@@ -160,13 +158,8 @@ public class TFTPClientConnection extends Thread {
 			System.out.println("Length: " + len);
 			System.out.println("Containing: ");
 			System.out.println("Packet No.: " + response[0] + " " + response[1] + " " + response[2] + " " + response[3]);
-//			if (req==Request.WRITE) {
-//				for (j=0;j<len;j++) {
-//					System.out.println("byte " + j + " " + response[j]);
-//				}
-//			}
 		}
-
+		//Sending first packet, iterator starts at starts at packet to send next
 		int i = 2;
 		try {
 			sendReceiveSocket.send(sendPacket);
@@ -178,7 +171,7 @@ public class TFTPClientConnection extends Thread {
 			System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 			System.out.println();
 		}
-
+		//Main loop
 		while (!quit) {
 			data = new byte[516];
 			if (controller.getOutputMode().equals("verbose")){
@@ -186,7 +179,7 @@ public class TFTPClientConnection extends Thread {
 			}
 
 			receivePacket = new DatagramPacket(data, data.length);
-
+			//Receiving packet from client
 			try {
 				// Block until a datagram is received via sendReceiveSocket.
 				sendReceiveSocket.receive(receivePacket);
@@ -202,7 +195,7 @@ public class TFTPClientConnection extends Thread {
 			}
 			// Process the received datagram.
 			len = receivePacket.getLength();
-			System.out.println("Client: Packet received:");
+			System.out.println("Server: Packet received:");
 			if (controller.getOutputMode().equals("verbose")){
 				System.out.println("From host: " + receivePacket.getAddress());
 				System.out.println("Host port: " + receivePacket.getPort());
@@ -210,13 +203,11 @@ public class TFTPClientConnection extends Thread {
 				int packetNo = (int) ((data[2] << 8) + data[3]);
 				System.out.println("Packet No.: " + packetNo);
 			}
-
+			//Checking if received last packet
 			if ((req == Request.WRITE) && len < 516) { 
 				quit = true;
 			}
-			
-			System.out.println(len);
-
+			//Creating packet to send, setting op code and data to send if client reading
 			if(req == Request.READ) {
 				int length = 512;
 				if (i == fileHandler.getNumSections())
@@ -226,16 +217,8 @@ public class TFTPClientConnection extends Thread {
 				response[1] = 3;
 				response[2] = (byte) ((i >> 8)& 0xff);
 				response[3] = (byte) (i & 0xff);
-				try {
-					System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
-					len = length+4;
-				} catch (TFTPException e) {
-						response = new byte[516];
-						byte[] error = e.getErrorBytes();
-						System.arraycopy(error, 0, response, 0, error.length);
-						req=Request.ERROR;
-						quit = true;
-				}
+				System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
+				len = length+4;
 			} else if(req == Request.WRITE) {
 				response = new byte[4];
 				response[0] = 0;
@@ -243,32 +226,21 @@ public class TFTPClientConnection extends Thread {
 				response[2] = data[2];
 				response[3] = data[3];
 				len = 4;
-				/*
-				int m;
-				for(m=4;m<receivePacket.getLength();m++){
-					if(receivePacket.getData()[m]==0) break;
+				try {
+					fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
+				} catch(TFTPException e) {
+					response = new byte[516];
+					byte[] error = e.getErrorBytes();
+					System.arraycopy(error, 0, response, 0, error.length);
+					req=Request.ERROR;
+					quit = true;
 				}
-				if(m<receivePacket.getLength()) {
-					byte[] shortPacket = new byte[m];
-					System.arraycopy(receivePacket, 0, shortPacket, 4, m);
-					fileHandler.writeFilesBytes(receivePacket.getData());
-				} else { */
-				    try {
-				    	fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
-				    } catch(TFTPException e) {
-						response = new byte[516];
-						byte[] error = e.getErrorBytes();
-						System.arraycopy(error, 0, response, 0, error.length);
-						req=Request.ERROR;
-						quit = true;
-					}
-				//}
 			}
-
+			
 			sendPacket = new DatagramPacket(response, response.length,
 					receivePacket.getAddress(), receivePacket.getPort());
 
-
+			//Output for sending packet
 			System.out.println("Server: Sending packet:");
 			if (outputMode.equals("verbose")){
 				System.out.println("To host: " + sendPacket.getAddress());
@@ -276,11 +248,6 @@ public class TFTPClientConnection extends Thread {
 				len = sendPacket.getLength();
 				System.out.println("Length: " + len);
 				System.out.println("Containing: ");
-//				if (req==Request.WRITE) {
-//					for (j=0;j<len;j++) {
-//						System.out.println("byte " + j + " " + response[j]);
-//					}
-//				}
 			}
 
 			// Send the datagram packet to the server via the send socket.
