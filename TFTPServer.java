@@ -6,7 +6,6 @@
 
 import java.io.*; 
 import java.net.*;
-import java.util.*;
 
 public class TFTPServer{
 
@@ -108,8 +107,6 @@ public class TFTPServer{
 
 		} // end of loop
 		
-		//TODO check if there are threads still open and wait for them to finish or set a timeout
-
 	}
 
 	public static void main( String args[] ) throws Exception{

@@ -9,8 +9,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
-import java.util.Scanner;
-import java.util.regex.*;
 
 public class TFTPClientConnection extends Thread {
 

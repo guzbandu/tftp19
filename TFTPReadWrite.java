@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class TFTPReadWrite {
-	private String filename;
 	private FileInputStream inStream;
 	private FileOutputStream outStream;
 	private File file;
@@ -22,7 +21,6 @@ public class TFTPReadWrite {
 	 *    being used, for debug)
 	 */
 	public TFTPReadWrite(String filename, String mode, String path, String userType) throws TFTPException {
-		this.filename = filename;
 		if (path != "") {
 			String[] pathArr = filename.split("\\\\|/");
 			filename = pathArr[pathArr.length - 1];
