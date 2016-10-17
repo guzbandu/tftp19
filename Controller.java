@@ -144,7 +144,6 @@ public class Controller extends Thread{
 	public String getPath() {
 		return path;
 	}
-	
 	public String getOutputMode() {
 		return outputMode;
 	}
