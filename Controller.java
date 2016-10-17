@@ -7,6 +7,10 @@ public class Controller extends Thread{
 	public boolean quit = false;
 	private String user;
 	private String path = "";
+	private String testSituation = "0";
+	private String affectedPacket = "RRQ";
+	private String packetNumber = "0";
+	private String delayTime = "1000";
 
 	public static TFTPClient client;
 
@@ -41,11 +45,23 @@ public class Controller extends Thread{
 		if(user.equals("Client")){
 			System.out.println("Run Mode:\t" + runMode);
 		}
+		if(user.equals("Sim")){
+			System.out.println("Test Situation:\t" + testSituation);
+			System.out.println("Affected Packet:\t" + affectedPacket);
+			System.out.println("Packet Number:\t" + packetNumber);
+			System.out.println("Delay Time:\t" + delayTime);
+		}
 		System.out.println("Path:\t" + path);
 		System.out.print("\nTo set output mode type 'verbose' or 'quiet'");
+		System.out.print("\nTo change path type 'path'");
 		if(user.equals("Client")){
 			System.out.print("\nTo set run mode type 'normal' or 'test'");
 			System.out.print("\nTo set send a request type 'read' or 'write'");
+		}
+		if(user.equals("Sim")){
+			System.out.print("\nTo set test situation type 'situation'");
+			System.out.print("\nTo set affect packet and packet number type 'packet' or 'number'");
+			System.out.print("\nTo set delay time type 'delay'");
 		}
 		System.out.print("\nTo set quit type 'quit'");
 		System.out.println();
@@ -88,6 +104,37 @@ public class Controller extends Thread{
 			}
 		}
 		
+		if(user.equals("Sim")){
+			if(command.equals("situation")){
+				System.out.print("\n0:normal 1:lose packet 2:delay packet 3:duplicate packet:");
+				String situation = scanner.nextLine();
+				System.out.println();
+				if(situation.equals("0")||situation.equals("1")||situation.equals("2")||situation.equals("3")){
+					testSituation = situation;
+				}
+			}
+			if(command.equals("packet")){
+				System.out.print("\nEnter a packet type:");
+				String packet = scanner.nextLine();
+				System.out.println();
+				if(packet.equals("RRQ")||packet.equals("WRQ")||packet.equals("DATA")||packet.equals("ACK")){
+					affectedPacket = packet;
+				}
+			}
+			if(command.equals("number")){
+				System.out.print("\nEnter a packet number:");
+				String number = scanner.nextLine();
+				System.out.println();
+				packetNumber = number;
+			}
+			if(command.equals("delay")){
+				System.out.print("\nEnter a delay time:");
+				String time = scanner.nextLine();
+				System.out.println();
+				delayTime = time;
+			}
+		}
+		
         if(command.equals("quit")){
         	quit = true;
         	scanner.close();
@@ -103,5 +150,17 @@ public class Controller extends Thread{
 	}
 	public String getRunMode() {
 		return runMode;
+	}
+	public String getTestSituation() {
+		return testSituation;
+	}
+	public String getAffectedPacket() {
+		return affectedPacket;
+	}
+	public int getPacketNumber() {
+		return Integer.parseInt(packetNumber);
+	}
+	public int getDelayTime() {
+		return Integer.parseInt(delayTime);
 	}
 }
