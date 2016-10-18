@@ -8,7 +8,7 @@ public class Controller extends Thread{
 	private String user;
 	private String path = "";
 	private String testSituation = "0";
-	private String affectedPacket = "RRQ";
+	private String affectedOpcode = "1";
 	private String packetNumber = "0";
 	private String delayTime = "1000";
 
@@ -47,7 +47,7 @@ public class Controller extends Thread{
 		}
 		if(user.equals("Sim")){
 			System.out.println("Test Situation:\t" + testSituation);
-			System.out.println("Affected Packet:\t" + affectedPacket);
+			System.out.println("Affected Packet Opcode:\t" + affectedOpcode);
 			System.out.println("Packet Number:\t" + packetNumber);
 			System.out.println("Delay Time:\t" + delayTime);
 		}
@@ -114,11 +114,11 @@ public class Controller extends Thread{
 				}
 			}
 			if(command.equals("packet")){
-				System.out.print("\nEnter a packet type:");
+				System.out.print("\nEnter a packet opcode (RRQ=1, WRQ=2, DATA=3, ACK=4, ERROR=5:");
 				String packet = scanner.nextLine();
 				System.out.println();
-				if(packet.equals("RRQ")||packet.equals("WRQ")||packet.equals("DATA")||packet.equals("ACK")){
-					affectedPacket = packet;
+				if(packet.equals("1")||packet.equals("2")||packet.equals("3")||packet.equals("4")||packet.equals("5")){
+					affectedOpcode = packet;
 				}
 			}
 			if(command.equals("number")){
@@ -150,11 +150,11 @@ public class Controller extends Thread{
 	public String getRunMode() {
 		return runMode;
 	}
-	public String getTestSituation() {
-		return testSituation;
+	public int getTestSituation() {
+		return Integer.parseInt(testSituation);
 	}
-	public String getAffectedPacket() {
-		return affectedPacket;
+	public int getAffectedOpcode() {
+		return Integer.parseInt(affectedOpcode);
 	}
 	public int getPacketNumber() {
 		return Integer.parseInt(packetNumber);

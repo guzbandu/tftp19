@@ -108,13 +108,8 @@ public class TFTPSim{
          }
 
          // Send the datagram packet to the server via the send/receive socket.
-
-         try {
-            sendReceiveSocket.send(sendPacket);
-         } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-         }
+         
+         errorSimSend(sendReceiveSocket,sendPacket,data);
          
          // Construct a DatagramPacket for receiving packets up
          // to 100 bytes long (the length of the byte array).
@@ -177,7 +172,6 @@ public class TFTPSim{
          }
 
          // Send the datagram packet to the client via a new socket.
-
          try {
             // Construct a new datagram socket and bind it to any port
             // on the local host machine. This socket will be used to
@@ -187,13 +181,9 @@ public class TFTPSim{
             se.printStackTrace();
             System.exit(1);
          }
-
-         try {
-            sendSocket.send(sendPacket);
-         } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-         }
+         
+         errorSimSend(sendSocket,sendPacket,data);
+         
          if (controller.getOutputMode().equals("verbose")){
         	 System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
         	 System.out.println();
@@ -203,6 +193,54 @@ public class TFTPSim{
          sendSocket.close();
       } // end of loop
 
+   }
+   
+   private void errorSimSend(DatagramSocket socket, DatagramPacket packet, byte[] d){
+	   if(controller.getTestSituation()==1 || d[1]==controller.getAffectedOpcode()){
+		   return; //lose packet
+	   }else if(controller.getTestSituation()==2 || d[1]==controller.getAffectedOpcode()){
+		   //delay packet
+		   try {
+			Thread.sleep(controller.getDelayTime());
+		   	} catch (InterruptedException e) {
+		   		e.printStackTrace();
+		   		System.exit(1);
+		   	}
+		   try {
+	            socket.send(packet);
+	         } catch (IOException e) {
+	            e.printStackTrace();
+	            System.exit(1);
+	         }   
+	   }else if(controller.getTestSituation()==3 || d[1]==controller.getAffectedOpcode()){
+		   //duplicate packet. Send packet, sleep, then send again.
+		   try {
+		       	socket.send(packet);
+		   	} catch (IOException e) {
+		       e.printStackTrace();
+		       System.exit(1);
+		   	} 
+		   try {
+			Thread.sleep(controller.getDelayTime());
+			} catch (InterruptedException e) {
+			   e.printStackTrace();
+			   System.exit(1);
+			}
+		   try {
+		       	socket.send(packet);
+		   	} catch (IOException e) {
+		       e.printStackTrace();
+		       System.exit(1);
+		   	} 
+	   }else{
+		   //send packet normally
+		   try {
+	            socket.send(packet);
+	         } catch (IOException e) {
+	            e.printStackTrace();
+	            System.exit(1);
+	         }
+	   }
    }
 
    public static void main( String args[] ){
