@@ -198,6 +198,10 @@ public class TFTPClientConnection extends Thread {
 				System.out.println("From host: " + receivePacket.getAddress());
 				System.out.println("Host port: " + receivePacket.getPort());
 				System.out.println("Length: " + len);
+				for (j=0;j<len;j++) {
+					System.out.print(data[j] + " | ");
+				}
+				System.out.println();
 				int packetNo = (int) ((data[2] << 8) + data[3]);
 				System.out.println("Packet No.: " + packetNo);
 			}
@@ -246,6 +250,10 @@ public class TFTPClientConnection extends Thread {
 				len = sendPacket.getLength();
 				System.out.println("Length: " + len);
 				System.out.println("Containing: ");
+				for (j=0;j<len;j++) {
+					System.out.print(response[j] + " | ");
+				}
+				System.out.println();
 			}
 
 			// Send the datagram packet to the server via the send socket.

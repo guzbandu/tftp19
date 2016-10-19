@@ -88,8 +88,9 @@ public class TFTPServer{
 
 				// print the bytes
 				for (j=0;j<len;j++) {
-					System.out.println("byte " + j + " " + data[j]);
+					System.out.print(data[j] + " | ");
 				}
+				System.out.println();
 
 				// Form a String from the byte array.
 				String received = new String(data,0,len);

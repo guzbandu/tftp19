@@ -128,8 +128,9 @@ public class TFTPClient {
     	   System.out.println("Length: " + len);
     	   System.out.println("Containing: ");
     	   for (j=0;j<len;j++) {
-    		   System.out.println("byte " + j + " " + msg[j]);
+    		   System.out.print(msg[j] + " | ");
     	   }
+	   System.out.println();
        }
        
        //Sending initial request packet
@@ -262,8 +263,9 @@ public class TFTPClient {
 		    	   len = sendPacket.getLength();
 		    	   System.out.println("Length: " + len);
 		    	   for (j=0;j<len;j++) {
-		    		   System.out.println("byte " + j + " " + msg[j]);
+		    		   System.out.print(msg[j] + " | ");
 		    	   }
+			   System.out.println();
 		    	   int packetNo = (int) ((msg[2] << 8) + msg[3]);
 		    	   System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
 		    	   System.out.println("Packet No.: " + packetNo);
