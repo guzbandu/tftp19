@@ -277,5 +277,18 @@ public class TFTPClientConnection extends Thread {
 		// We're finished with this socket, so close it.
 		System.out.println("Transfer Complete");
 		sendReceiveSocket.close();
+	    if(req == Request.READ) {
+	  	   try {
+	    		   fileHandler.closeInFile();
+	    	   } catch (TFTPException e) {
+	    		   System.out.println("Error closing file " + path + filename + "\n" );
+	    	   }
+	       } else {
+	    	   try {
+	    		   fileHandler.closeOutFile();
+	    	   } catch (TFTPException e) {
+	    		   System.out.println("Error closing file " + path + filename + "\n" );
+	    	   }
+	       }		
 	}
 }

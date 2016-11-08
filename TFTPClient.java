@@ -44,9 +44,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
-         sendPort = 23;
+         sendPort = 2023;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -223,7 +223,7 @@ public class TFTPClient {
 	    		   length = fileHandler.getFileLength() - ((fileHandler.getNumSections()-1) * 512);
 	    	   msg = new byte[length+4];
 	    	   msg[0] = 0;
-	    	   msg[1] = 4;
+	    	   msg[1] = 3;
 	    	   msg[2] = (byte) ((i >> 8)& 0xff);
 	    	   msg[3] = (byte) (i & 0xff);
 	    	   try {
@@ -233,7 +233,7 @@ public class TFTPClient {
 	    		   length = 0;
 		    	   msg = new byte[4];
 		    	   msg[0] = 0;
-		    	   msg[1] = 4;
+		    	   msg[1] = 3;
 		    	   msg[2] = (byte) ((i >> 8)& 0xff);
 		    	   msg[3] = (byte) (i & 0xff);	    		   
 	    		   quit = true;
@@ -245,7 +245,7 @@ public class TFTPClient {
 	       } else if(request.equalsIgnoreCase("READ")) {
 	    	   msg = new byte[4];
 	    	   msg[0] = 0;
-	    	   msg[1] = 3;
+	    	   msg[1] = 4;
 	    	   msg[2] = data[2];
 	    	   msg[3] = data[3];
 	    	   len = 4;
@@ -296,9 +296,58 @@ public class TFTPClient {
 		       
 		       if(!full)
 		    	   System.out.println();
+		       
+		       /* Wait for final acknowledgement */
+		       if(quit&&request.equalsIgnoreCase("WRITE")) {
+			       if (controller.getOutputMode().equals("verbose")&&!full)
+			    	   System.out.println("Client: Waiting for packet.");
+			       //Receiving packet
+			       try {
+			           // Block until a datagram is received via sendReceiveSocket.
+			           sendReceiveSocket.receive(receivePacket);
+			       } catch (SocketTimeoutException e) {
+			   			if(controller.quit) {
+			   				sendReceiveSocket.close();
+			   				System.exit(0);
+			   			}
+			        } catch(IOException e) {
+			           e.printStackTrace();
+			           System.exit(1);
+			        }
+
+			       // Process the received datagram.
+			       len = receivePacket.getLength();
+			       if(!full)
+			    	   System.out.println("Client: Packet received:");
+			       if (controller.getOutputMode().equals("verbose")&&!full){
+			    	   System.out.println("From host: " + receivePacket.getAddress());
+			    	   System.out.println("Host port: " + receivePacket.getPort());
+			    	   System.out.println("Length: " + len);
+			    	   for (j=0;j<len;j++) {
+			    		   System.out.print(data[j] + " | ");
+			    	   }
+			    	   System.out.println();
+			    	   int packetNo = (int) ((data[2] << 8) + data[3]);
+			    	   System.out.println("Packet No.: " + packetNo);
+			       }
+
+		       }
 	       }
        }
        System.out.println("File Transfer Complete");
+       if(request.equalsIgnoreCase("READ")) {
+    	   try {
+    		   fileHandler.closeOutFile();
+    	   } catch (TFTPException e) {
+    		   System.out.println("Error closing file " + path + filename + "\n" );
+    	   }
+       } else {
+    	   try {
+    		   fileHandler.closeInFile();
+    	   } catch (TFTPException e) {
+    		   System.out.println("Error closing file " + path + filename + "\n" );
+    	   }
+       }
    }
 
    public static void main(String args[]){
