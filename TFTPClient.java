@@ -141,7 +141,7 @@ public class TFTPClient {
            System.exit(1);
         }
        if (controller.getOutputMode().equals("verbose"))
-    	   System.out.println("Client: Packet sent.");
+    	   System.out.println("Client: Packet sent.\n");
        
        int i = 1;
        //Main loop
@@ -175,8 +175,12 @@ public class TFTPClient {
 	    	   System.out.println("From host: " + receivePacket.getAddress());
 	    	   System.out.println("Host port: " + receivePacket.getPort());
 	    	   System.out.println("Length: " + len);
+	    	   for (j=0;j<len;j++) {
+	    		   System.out.print(data[j] + " | ");
+	    	   }
+	    	   System.out.println();
 	    	   int packetNo = (int) ((data[2] << 8) + data[3]);
-	    	   System.out.println("Packet No.: " + packetNo);
+	    	   System.out.println("Packet No.: " + packetNo + "\n");
 	       }
 	       
 	       //Checking for error packets
@@ -283,7 +287,7 @@ public class TFTPClient {
 		           System.exit(1);
 		        }
 		       if (controller.getOutputMode().equals("verbose")&&!full)
-		    	   System.out.println("Client: Packet sent.");
+		    	   System.out.println("Client: Packet sent.\n");
 		
 		       // Construct a DatagramPacket for receiving packets up
 		       // to 100 bytes long (the length of the byte array).

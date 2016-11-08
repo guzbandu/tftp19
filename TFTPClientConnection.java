@@ -203,7 +203,7 @@ public class TFTPClientConnection extends Thread {
 				}
 				System.out.println();
 				int packetNo = (int) ((data[2] << 8) + data[3]);
-				System.out.println("Packet No.: " + packetNo);
+				System.out.println("Packet No.: " + packetNo + "\n");
 			}
 			//Checking if received last packet
 			if ((req == Request.WRITE) && len < 516) { 

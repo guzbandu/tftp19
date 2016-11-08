@@ -70,8 +70,9 @@ public class TFTPSim{
          
         	 // print the bytes
         	 for (j=0;j<len;j++) {
-        		 System.out.println("byte " + j + " " + data[j]);
+        		 System.out.print(data[j] + " | ");
         	 }
+        	 System.out.println();
 
         	 // Form a String from the byte array, and print the string.
         	 String received = new String(data,0,len);
@@ -103,8 +104,9 @@ public class TFTPSim{
         	 System.out.println("Length: " + len);
          	System.out.println("Containing: ");
          	for (j=0;j<len;j++) {
-         		System.out.println("byte " + j + " " + data[j]);
+         		System.out.print(data[j] + " | ");
          	}
+         	System.out.println();
          }
 
          // Send the datagram packet to the server via the send/receive socket.
@@ -135,8 +137,9 @@ public class TFTPSim{
         	 System.out.println("Length: " + len);
         	 System.out.println("Containing: ");
         	 for (j=0;j<len;j++) {
-        		 System.out.println("byte " + j + " " + data[j]);
+        		 System.out.print(data[j] + " | ");
         	 }
+        	 System.out.println();
          }
 
          // Construct a datagram packet that is to be sent to a specified port
@@ -167,8 +170,9 @@ public class TFTPSim{
         	 System.out.println("Length: " + len);
         	 System.out.println("Containing: ");
         	 for (j=0;j<len;j++) {
-        		 System.out.println("byte " + j + " " + data[j]);
+        		 System.out.print(data[j] + " | ");
         	 }
+        	 System.out.println();
          }
 
          // Send the datagram packet to the client via a new socket.
