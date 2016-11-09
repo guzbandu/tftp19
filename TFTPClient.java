@@ -38,13 +38,14 @@ public class TFTPClient {
       int j, len, sendPort;
       boolean quit = false; //Used for exit condition
       boolean full = false; //Used for the disk fills condition
+      boolean last_packet = false; //Used to ensure final ack is sent
       String path = controller.getPath();
       
       //If user enters "normal" as the mode
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
          sendPort = 23;
          
@@ -179,9 +180,9 @@ public class TFTPClient {
 	    		   System.out.print(data[j] + " | ");
 	    	   }
 	    	   System.out.println();
-	    	   int packetNo = (int) ((data[2] << 8) + data[3]);
-	    	   System.out.println("Packet No.: " + packetNo + "\n");
 	       }
+    	   int packetNo = (int) ((data[2] << 8) + data[3]);
+    	   System.out.println("Packet No.: " + packetNo + "\n");
 	       
 	       //Checking for error packets
 	       if(5 == (int)((data[0] << 8) + data[1])) {
@@ -206,7 +207,7 @@ public class TFTPClient {
 	    	   if(!full)
 	    		   System.out.println("Data length: " + len);
 	    	   if (len < 516)
-	    		   break;
+	    		   last_packet=true;
 	       }
 	       //Exit on disk full but transfer complete
 	       if(full&&len<516) {
@@ -270,13 +271,13 @@ public class TFTPClient {
 		    		   System.out.print(msg[j] + " | ");
 		    	   }
 			   System.out.println();
-		    	   int packetNo = (int) ((msg[2] << 8) + msg[3]);
 		    	   System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
-		    	   System.out.println("Packet No.: " + packetNo);
 		    	   // Form a String from the byte array, and print the string.
 		           String sending = new String(msg,0,len);
 		           System.out.println(sending);
 		       }
+	    	   packetNo = (int) ((msg[2] << 8) + msg[3]);
+	    	   System.out.println("Packet No.: " + packetNo);
 	
 		       // Send the datagram packet to the server via the send/receive socket.
 		
@@ -296,6 +297,9 @@ public class TFTPClient {
 		       
 		       if(!full)
 		    	   System.out.println();
+		       
+		       /* Sent final packet can break now */
+		       if(last_packet) break;
 		       
 		       /* Wait for final acknowledgement */
 		       if(quit&&request.equalsIgnoreCase("WRITE")) {
@@ -327,9 +331,9 @@ public class TFTPClient {
 			    		   System.out.print(data[j] + " | ");
 			    	   }
 			    	   System.out.println();
-			    	   int packetNo = (int) ((data[2] << 8) + data[3]);
-			    	   System.out.println("Packet No.: " + packetNo);
 			       }
+		    	   packetNo = (int) ((data[2] << 8) + data[3]);
+		    	   System.out.println("Packet No.: " + packetNo);
 
 		       }
 	       }

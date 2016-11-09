@@ -159,6 +159,7 @@ public class TFTPClientConnection extends Thread {
 		}
 		//Sending first packet, iterator starts at starts at packet to send next
 		int i = 2;
+		
 		try {
 			sendReceiveSocket.send(sendPacket);
 		} catch (IOException e) {
@@ -169,6 +170,44 @@ public class TFTPClientConnection extends Thread {
 			System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 			System.out.println();
 		}
+		
+		//Handle final ack
+		if (i >= fileHandler.getNumSections() && req==Request.READ) {
+			if (controller.getOutputMode().equals("verbose")){
+				System.out.println("Waiting for packet");
+			}
+
+			receivePacket = new DatagramPacket(data, data.length);
+			//Receiving packet from client
+			try {
+				// Block until a datagram is received via sendReceiveSocket.
+				sendReceiveSocket.receive(receivePacket);
+			} catch (SocketTimeoutException e) {
+				if (controller.quit) {
+					sendReceiveSocket.close();
+					System.exit(0);
+				}
+			} catch(IOException e) {
+
+				e.printStackTrace();
+				System.exit(1);
+			}
+			// Process the received datagram.
+			len = receivePacket.getLength();
+			System.out.println("Server: Packet received:");
+			if (controller.getOutputMode().equals("verbose")){
+				System.out.println("From host: " + receivePacket.getAddress());
+				System.out.println("Host port: " + receivePacket.getPort());
+				System.out.println("Length: " + len);
+				for (j=0;j<len;j++) {
+					System.out.print(data[j] + " | ");
+				}
+				System.out.println();
+			}
+			int packetNo = (int) ((data[2] << 8) + data[3]);
+			System.out.println("Packet No.: " + packetNo + "\n");
+		}
+		
 		//Main loop
 		while (!quit) {
 			data = new byte[516];
@@ -202,9 +241,10 @@ public class TFTPClientConnection extends Thread {
 					System.out.print(data[j] + " | ");
 				}
 				System.out.println();
-				int packetNo = (int) ((data[2] << 8) + data[3]);
-				System.out.println("Packet No.: " + packetNo + "\n");
 			}
+			int packetNo = (int) ((data[2] << 8) + data[3]);
+			System.out.println("Packet No.: " + packetNo + "\n");
+
 			//Checking if received last packet
 			if ((req == Request.WRITE) && len < 516) { 
 				quit = true;
@@ -272,6 +312,42 @@ public class TFTPClientConnection extends Thread {
 				quit = true;
 			}
 			i++;
+			
+			if(quit&&req==Request.READ) {
+				if (controller.getOutputMode().equals("verbose")){
+					System.out.println("Waiting for packet");
+				}
+
+				receivePacket = new DatagramPacket(data, data.length);
+				//Receiving packet from client
+				try {
+					// Block until a datagram is received via sendReceiveSocket.
+					sendReceiveSocket.receive(receivePacket);
+				} catch (SocketTimeoutException e) {
+					if (controller.quit) {
+						sendReceiveSocket.close();
+						System.exit(0);
+					}
+				} catch(IOException e) {
+
+					e.printStackTrace();
+					System.exit(1);
+				}
+				// Process the received datagram.
+				len = receivePacket.getLength();
+				System.out.println("Server: Packet received:");
+				if (controller.getOutputMode().equals("verbose")){
+					System.out.println("From host: " + receivePacket.getAddress());
+					System.out.println("Host port: " + receivePacket.getPort());
+					System.out.println("Length: " + len);
+					for (j=0;j<len;j++) {
+						System.out.print(data[j] + " | ");
+					}
+					System.out.println();
+				}
+				packetNo = (int) ((data[2] << 8) + data[3]);
+				System.out.println("Packet No.: " + packetNo + "\n");
+			}
 		}
 
 		// We're finished with this socket, so close it.
