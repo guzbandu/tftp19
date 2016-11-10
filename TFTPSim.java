@@ -200,9 +200,9 @@ public class TFTPSim{
    }
    
    private void errorSimSend(DatagramSocket socket, DatagramPacket packet, byte[] d){
-	   if(controller.getTestSituation()==1 || d[1]==controller.getAffectedOpcode()){
+	   if(controller.getTestSituation()==1 && d[1]==controller.getAffectedOpcode()){
 		   return; //lose packet
-	   }else if(controller.getTestSituation()==2 || d[1]==controller.getAffectedOpcode()){
+	   }else if(controller.getTestSituation()==2 && d[1]==controller.getAffectedOpcode()){
 		   //delay packet
 		   try {
 			Thread.sleep(controller.getDelayTime());
@@ -216,7 +216,7 @@ public class TFTPSim{
 	            e.printStackTrace();
 	            System.exit(1);
 	         }   
-	   }else if(controller.getTestSituation()==3 || d[1]==controller.getAffectedOpcode()){
+	   }else if(controller.getTestSituation()==3 && d[1]==controller.getAffectedOpcode()){
 		   //duplicate packet. Send packet, sleep, then send again.
 		   try {
 		       	socket.send(packet);

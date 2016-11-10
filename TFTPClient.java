@@ -9,10 +9,16 @@ import java.util.Arrays;
 
 public class TFTPClient {
 
-   private DatagramPacket sendPacket, receivePacket;
+   public static DatagramPacket receivePacket;
+   private DatagramPacket sendPacket;
    private DatagramSocket sendReceiveSocket;
    public static Controller controller;
    private int count;
+   private static boolean receive_success = false; //Used to track if our threads receive was successful
+   
+   public synchronized static void set_receive_success(boolean success) {
+	   receive_success = success;
+   }
    
    public TFTPClient()
    {
@@ -39,6 +45,7 @@ public class TFTPClient {
       boolean quit = false; //Used for exit condition
       boolean full = false; //Used for the disk fills condition
       boolean last_packet = false; //Used to ensure final ack is sent
+      
       String path = controller.getPath();
       
       //If user enters "normal" as the mode
@@ -153,21 +160,31 @@ public class TFTPClient {
 	       
 	       if (controller.getOutputMode().equals("verbose")&&!full)
 	    	   System.out.println("Client: Waiting for packet.");
-	       //Receiving packet
-	       try {
-	           // Block until a datagram is received via sendReceiveSocket.
-	           sendReceiveSocket.receive(receivePacket);
-	       } catch (SocketTimeoutException e) {
-	   			if(controller.quit) {
-	   				sendReceiveSocket.close();
-	   				System.exit(0);
-	   			}
-	        } catch(IOException e) {
-	           e.printStackTrace();
-	           System.exit(1);
-	        }
-	    	   
 	       
+	       //Receiving packet
+	       receive_success=false; //Start loop not having received anything
+	       while(!receive_success) {
+	    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket);
+	    	   receiveConnection.start();
+	    	   try{
+	    		   receiveConnection.join();
+	    	   } catch (InterruptedException e) {
+	    		   e.printStackTrace();
+	    	   }
+	    	   if(!receive_success) {
+	    		   //we did not receive a packet before timing out, re-send our packet
+	    	       //Sending request packet
+	    	       try {
+	    	           sendReceiveSocket.send(sendPacket);
+	    	        } catch (IOException e) {
+	    	           e.printStackTrace();
+	    	           System.exit(1);
+	    	        }
+	    	       if (controller.getOutputMode().equals("verbose"))
+	    	    	   System.out.println("Client: Re-sending packet.\n");
+	    	   }
+	       }
+	    	   	       
 	       // Process the received datagram.
 	       len = receivePacket.getLength();
 	       if(!full)
@@ -305,19 +322,30 @@ public class TFTPClient {
 		       if(quit&&request.equalsIgnoreCase("WRITE")) {
 			       if (controller.getOutputMode().equals("verbose")&&!full)
 			    	   System.out.println("Client: Waiting for packet.");
+
 			       //Receiving packet
-			       try {
-			           // Block until a datagram is received via sendReceiveSocket.
-			           sendReceiveSocket.receive(receivePacket);
-			       } catch (SocketTimeoutException e) {
-			   			if(controller.quit) {
-			   				sendReceiveSocket.close();
-			   				System.exit(0);
-			   			}
-			        } catch(IOException e) {
-			           e.printStackTrace();
-			           System.exit(1);
-			        }
+			       receive_success=false; //Start loop not having received anything
+			       while(!receive_success) {
+			    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket);
+			    	   receiveConnection.start();
+			    	   try{
+			    		   receiveConnection.join();
+			    	   } catch (InterruptedException e) {
+			    		   e.printStackTrace();
+			    	   }
+			    	   if(!receive_success) {
+			    		   //we did not receive a packet before timing out, re-send our packet
+			    	       //Sending request packet
+			    	       try {
+			    	           sendReceiveSocket.send(sendPacket);
+			    	        } catch (IOException e) {
+			    	           e.printStackTrace();
+			    	           System.exit(1);
+			    	        }
+			    	       if (controller.getOutputMode().equals("verbose"))
+			    	    	   System.out.println("Client: Re-sending packet.\n");
+			    	   }
+			       }
 
 			       // Process the received datagram.
 			       len = receivePacket.getLength();
