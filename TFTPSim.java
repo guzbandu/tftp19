@@ -26,7 +26,7 @@ public class TFTPSim{
          // Construct a datagram socket and bind it to port 23
          // on the local host machine. This socket will be used to
          // receive UDP Datagram packets from clients.
-         receiveSocket = new DatagramSocket(2023);
+         receiveSocket = new DatagramSocket(23);
          // Construct a datagram socket and bind it to any available
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets from the server.
@@ -41,7 +41,7 @@ public class TFTPSim{
    {
       byte[] data;
       
-      int clientPort, j=0, len;
+      int clientPort, j=0, len, serverPort=69;
 
       for(;;) { // loop forever
          // Construct a DatagramPacket for receiving packets up
@@ -94,7 +94,7 @@ public class TFTPSim{
          //  69 - the destination port number on the destination host.
 
          sendPacket = new DatagramPacket(data, len,
-                                        receivePacket.getAddress(), 2069);
+                                        receivePacket.getAddress(), serverPort);
         
          System.out.println("Simulator: sending packet.");
          if (controller.getOutputMode().equals("verbose")){
@@ -128,11 +128,14 @@ public class TFTPSim{
             System.exit(1);
          }
 
+         // After the connection is established, serverPort should be the thread's port
+         serverPort = receivePacket.getPort();
+         
          // Process the received datagram.
          System.out.println("Simulator: Packet received:");
          if (controller.getOutputMode().equals("verbose")){
         	 System.out.println("From host: " + receivePacket.getAddress());
-        	 System.out.println("Host port: " + receivePacket.getPort());
+        	 System.out.println("Host port: " + serverPort);
         	 len = receivePacket.getLength();
         	 System.out.println("Length: " + len);
         	 System.out.println("Containing: ");
@@ -201,8 +204,10 @@ public class TFTPSim{
    
    private void errorSimSend(DatagramSocket socket, DatagramPacket packet, byte[] d){
 	   if(controller.getTestSituation()==1 && d[1]==controller.getAffectedOpcode()){
+		   System.out.println("Losing packet.");
 		   return; //lose packet
 	   }else if(controller.getTestSituation()==2 && d[1]==controller.getAffectedOpcode()){
+		   System.out.println("Delaying packet.");
 		   //delay packet
 		   try {
 			Thread.sleep(controller.getDelayTime());
@@ -217,6 +222,7 @@ public class TFTPSim{
 	            System.exit(1);
 	         }   
 	   }else if(controller.getTestSituation()==3 && d[1]==controller.getAffectedOpcode()){
+		   System.out.println("Duplicating packet.");
 		   //duplicate packet. Send packet, sleep, then send again.
 		   try {
 		       	socket.send(packet);

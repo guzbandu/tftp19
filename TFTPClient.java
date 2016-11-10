@@ -52,9 +52,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 2069;
+         sendPort = 69;
       else
-         sendPort = 2023;
+         sendPort = 23;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -274,17 +274,15 @@ public class TFTPClient {
 	       }
 	       
 	       if(!request.equalsIgnoreCase("ERROR")) {
-	    	   //Sending packet
+	    	   int p; // Port we are sending to
+	    	   // Sim's sendSocket is 23, Server's is the Thread's
+	    	   if (controller.getRunMode().equals("test")) p = sendPort;
+	    	   else p = receivePacket.getPort();
 	    	   
+	    	   //Sending packet
 		       try {
-		    	   if(controller.getRunMode().equals("normal")) {
-		    		   sendPacket = new DatagramPacket(msg, len,
-		    				   InetAddress.getLocalHost(), receivePacket.getPort());
-		    	   } else {
-		    		   //Test mode - we need to keep sending to port 23
-			    	   sendPacket = new DatagramPacket(msg, len,
-			    			   InetAddress.getLocalHost(), sendPort);		    		   
-		    	   }
+		    	   sendPacket = new DatagramPacket(msg, len,
+		    			   InetAddress.getLocalHost(), p);
 		       } catch (UnknownHostException e) {
 		    	   e.printStackTrace();
 		    	   System.exit(1);
