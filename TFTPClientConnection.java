@@ -176,7 +176,7 @@ public class TFTPClientConnection extends Thread {
 			System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 			System.out.println();
 		}
-		
+
 		//Handle final ack
 		if (req==Request.READ && i >= fileHandler.getNumSections()) {
 			if (controller.getOutputMode().equals("verbose")){
@@ -228,8 +228,10 @@ public class TFTPClientConnection extends Thread {
 			}
 			int packetNo = (int) ((data[2] << 8) + data[3]);
 			System.out.println("Packet No.: " + packetNo + "\n");
+
+			quit = true;
 		}
-		
+
 		//Main loop
 		while (!quit) {
 			data = new byte[516];
