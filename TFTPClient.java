@@ -13,7 +13,8 @@ public class TFTPClient {
    private DatagramPacket sendPacket;
    private DatagramSocket sendReceiveSocket;
    public static Controller controller;
-   private int count;
+   private int resend_count = 0; //Used to track the number of times we try to resend a packet
+   private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
    private static boolean receive_success = false; //Used to track if our threads receive was successful
    
    public synchronized static void set_receive_success(boolean success) {
@@ -27,8 +28,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
-	     sendReceiveSocket.setSoTimeout(10000);
-		 count=0;
+	     sendReceiveSocket.setSoTimeout(1000);
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
          System.exit(1);
@@ -52,9 +52,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
-         sendPort = 23;
+         sendPort = 2023;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -163,7 +163,8 @@ public class TFTPClient {
 	       
 	       //Receiving packet
 	       receive_success=false; //Start loop not having received anything
-	       while(!receive_success) {
+	       resend_count = 0;
+	       while(!receive_success&&resend_count<MAX_RESEND) {
 	    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket);
 	    	   receiveConnection.start();
 	    	   try{
@@ -183,7 +184,10 @@ public class TFTPClient {
 	    	       if (controller.getOutputMode().equals("verbose"))
 	    	    	   System.out.println("Client: Re-sending packet.\n");
 	    	   }
+	    	   resend_count++;
 	       }
+	       
+	       if(!receive_success) break;
 	    	   	       
 	       // Process the received datagram.
 	       len = receivePacket.getLength();
@@ -271,9 +275,16 @@ public class TFTPClient {
 	       
 	       if(!request.equalsIgnoreCase("ERROR")) {
 	    	   //Sending packet
+	    	   
 		       try {
-		    	   sendPacket = new DatagramPacket(msg, len,
-		    			   InetAddress.getLocalHost(), receivePacket.getPort());
+		    	   if(controller.getRunMode().equals("normal")) {
+		    		   sendPacket = new DatagramPacket(msg, len,
+		    				   InetAddress.getLocalHost(), receivePacket.getPort());
+		    	   } else {
+		    		   //Test mode - we need to keep sending to port 23
+			    	   sendPacket = new DatagramPacket(msg, len,
+			    			   InetAddress.getLocalHost(), sendPort);		    		   
+		    	   }
 		       } catch (UnknownHostException e) {
 		    	   e.printStackTrace();
 		    	   System.exit(1);
@@ -325,7 +336,8 @@ public class TFTPClient {
 
 			       //Receiving packet
 			       receive_success=false; //Start loop not having received anything
-			       while(!receive_success) {
+			       resend_count = 0;
+			       while(!receive_success&&resend_count<MAX_RESEND) {
 			    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket);
 			    	   receiveConnection.start();
 			    	   try{
@@ -345,7 +357,10 @@ public class TFTPClient {
 			    	       if (controller.getOutputMode().equals("verbose"))
 			    	    	   System.out.println("Client: Re-sending packet.\n");
 			    	   }
+			    	   resend_count++;
 			       }
+			       
+			       if(!receive_success) break;
 
 			       // Process the received datagram.
 			       len = receivePacket.getLength();

@@ -23,7 +23,10 @@ public class TFTPClientConnection extends Thread {
 	private DatagramPacket sendPacket;
 	public DatagramPacket receivePacket;
 	public boolean receive_success = false; //Used to track if our receive thread was successful
-	private String outputMode;
+	private int resend_count = 0; //Used to track the number of times we try to resend a packet
+	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
+	protected String outputMode;
+	protected Controller controller;
 
 	public TFTPClientConnection(String name, DatagramPacket packet, String outputMode) {
 		super(name); // Name the thread
@@ -35,14 +38,14 @@ public class TFTPClientConnection extends Thread {
 		// send a UDP Datagram packet.
 		try {
 			sendReceiveSocket = new DatagramSocket();
-			//sendReceiveSocket.setSoTimeout(500);
+			sendReceiveSocket.setSoTimeout(1000);
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void run() {
-		Controller controller = TFTPServer.controller;
+		controller = TFTPServer.controller;
 		byte[] data = receivePacket.getData();
 		byte[] response = new byte[4];
 		boolean quit = false;
@@ -175,7 +178,7 @@ public class TFTPClientConnection extends Thread {
 		}
 		
 		//Handle final ack
-		if (i >= fileHandler.getNumSections() && req==Request.READ) {
+		if (req==Request.READ && i >= fileHandler.getNumSections()) {
 			if (controller.getOutputMode().equals("verbose")){
 				System.out.println("Waiting for packet");
 			}
@@ -184,7 +187,9 @@ public class TFTPClientConnection extends Thread {
 
 			//Receiving packet from client
 			receive_success=false; //Start loop not having received anything
-			while(!receive_success) {
+			resend_count = 0;
+			while(!receive_success&&resend_count<MAX_RESEND) {
+				if(req==Request.ERROR&&resend_count>=1) break;
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
 				receiveConnection.start();
 				try{
@@ -204,7 +209,11 @@ public class TFTPClientConnection extends Thread {
 					if (controller.getOutputMode().equals("verbose"))
 						System.out.println("Client: Re-sending packet.\n");
 				}
+				resend_count++;
 			}
+			
+			if(!receive_success) return;
+			
 			// Process the received datagram.
 			len = receivePacket.getLength();
 			System.out.println("Server: Packet received:");
@@ -231,7 +240,9 @@ public class TFTPClientConnection extends Thread {
 			receivePacket = new DatagramPacket(data, data.length);
 			//Receiving packet from client
 			receive_success=false; //Start loop not having received anything
-			while(!receive_success) {
+			resend_count = 0;
+			while(!receive_success&&resend_count<MAX_RESEND) {
+				if(req==Request.ERROR&&resend_count>=1) break;
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
 				receiveConnection.start();
 				try{
@@ -251,7 +262,11 @@ public class TFTPClientConnection extends Thread {
 					if (controller.getOutputMode().equals("verbose"))
 						System.out.println("Client: Re-sending packet.\n");
 				}
+				resend_count++;
 			}
+			
+			if(!receive_success) break;
+			
 			// Process the received datagram.
 			len = receivePacket.getLength();
 			System.out.println("Server: Packet received:");
@@ -343,7 +358,9 @@ public class TFTPClientConnection extends Thread {
 				receivePacket = new DatagramPacket(data, data.length);
 				//Receiving packet from client
 				receive_success=false; //Start loop not having received anything
-				while(!receive_success) {
+				resend_count = 0;
+				while(!receive_success&&resend_count<MAX_RESEND) {
+					if(req==Request.ERROR&&resend_count>=1) break;
 					Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
 					receiveConnection.start();
 					try{
@@ -361,9 +378,13 @@ public class TFTPClientConnection extends Thread {
 							System.exit(1);
 						}
 						if (controller.getOutputMode().equals("verbose"))
-							System.out.println("Client: Re-sending packet.\n");
+							System.out.println("Server: Re-sending packet.\n");
 					}
+					resend_count++;
 				}
+				
+				if(!receive_success) break;
+				
 				// Process the received datagram.
 				len = receivePacket.getLength();
 				System.out.println("Server: Packet received:");

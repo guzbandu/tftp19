@@ -26,7 +26,7 @@ public class TFTPSim{
          // Construct a datagram socket and bind it to port 23
          // on the local host machine. This socket will be used to
          // receive UDP Datagram packets from clients.
-         receiveSocket = new DatagramSocket(23);
+         receiveSocket = new DatagramSocket(2023);
          // Construct a datagram socket and bind it to any available
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets from the server.
@@ -47,7 +47,7 @@ public class TFTPSim{
          // Construct a DatagramPacket for receiving packets up
          // to 100 bytes long (the length of the byte array).
          
-         data = new byte[100];
+         data = new byte[516];
          receivePacket = new DatagramPacket(data, data.length);
 
          System.out.println("Simulator: Waiting for packet.");
@@ -94,7 +94,7 @@ public class TFTPSim{
          //  69 - the destination port number on the destination host.
 
          sendPacket = new DatagramPacket(data, len,
-                                        receivePacket.getAddress(), 69);
+                                        receivePacket.getAddress(), 2069);
         
          System.out.println("Simulator: sending packet.");
          if (controller.getOutputMode().equals("verbose")){
@@ -116,7 +116,7 @@ public class TFTPSim{
          // Construct a DatagramPacket for receiving packets up
          // to 100 bytes long (the length of the byte array).
 
-         data = new byte[100];
+         data = new byte[516];
          receivePacket = new DatagramPacket(data, data.length);
 
          System.out.println("Simulator: Waiting for packet.");

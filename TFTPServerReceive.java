@@ -19,7 +19,7 @@ public class TFTPServerReceive extends Thread {
 	           sendReceiveSocket.receive(parent.receivePacket);
 	           parent.receive_success = true;
 	       } catch (SocketTimeoutException e) {
-	   			if(TFTPClient.controller.quit) {
+	   			if(parent.controller.quit==true) {
 	   				sendReceiveSocket.close();
 	   				System.exit(0);
 	   			} else {
