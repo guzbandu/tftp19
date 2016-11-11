@@ -43,11 +43,17 @@ public class TFTPSim{
    {
       byte[] data;
       
-      int clientPort, j=0, len, serverPort=2069;
+      int clientPort, j=0, len, serverPort=69;
+      boolean restart = false; // If Client sends RRQ, after last ACK sent to Server, go back to top
+      boolean switchPort = false; // If Client sends WRQ, after last DATA, switchPort back to 69
       
       packetCount = 0; //We start by dealing with the request packet and the next packet is the "first" packet
 
       for(;;) { // loop forever
+    	  if (switchPort) {
+    		  serverPort = 69;
+    		  switchPort = false;
+    	  }
          // Construct a DatagramPacket for receiving packets up
          // to 100 bytes long (the length of the byte array).
          
@@ -98,83 +104,100 @@ public class TFTPSim{
          }
 
          // Send the datagram packet to the server via the send/receive socket.
-         
+
          errorSimSend(sendReceiveSocket,sendPacket,data);
          
-         // Construct a DatagramPacket for receiving packets up
-         // to 100 bytes long (the length of the byte array).
-
-         data = new byte[516];
-         receivePacket = new DatagramPacket(data, data.length);
-
-         System.out.println("Simulator: Waiting for packet.");
-         try {
-            // Block until a datagram is received via sendReceiveSocket.
-            sendReceiveSocket.receive(receivePacket);
-         } catch(IOException e) {
-            e.printStackTrace();
-            System.exit(1);
+         // If Client sends DATA < 516, next send to Server is on port 69
+         if (receivePacket.getData()[1] == 3 && receivePacket.getLength() < 516) {
+        	 switchPort = true;
          }
 
-         // After the connection is established, serverPort should be the thread's port
-         serverPort = receivePacket.getPort();
+         // If Server send DATA < 516 and last ACK was transfered, back to the top
+         if (restart) {
+        	 serverPort = 69;
+        	 restart = false;
+         } else {
          
-         // Process the received datagram.
-         System.out.println("Simulator: Packet received:");
-         if (controller.getOutputMode().equals("verbose")){
-        	 TFTPReadWrite.printPacket(receivePacket, serverPort, "receive");
-         }
+        	 // Construct a DatagramPacket for receiving packets up
+        	 // to 100 bytes long (the length of the byte array).
 
-         // Construct a datagram packet that is to be sent to a specified port
-         // on a specified host.
-         // The arguments are:
-         //  data - the packet data (a byte array). This is the response.
-         //  receivePacket.getLength() - the length of the packet data.
-         //     This is the length of the msg we just created.
-         //  receivePacket.getAddress() - the Internet address of the
-         //     destination host. Since we want to send a packet back to the
-         //     client, we extract the address of the machine where the
-         //     client is running from the datagram that was sent to us by
-         //     the client.
-         //  receivePacket.getPort() - the destination port number on the
-         //     destination host where the client is running. The client
-         //     sends and receives datagrams through the same socket/port,
-         //     so we extract the port that the client used to send us the
-         //     datagram, and use that as the destination port for the TFTP
-         //     packet.
+        	 data = new byte[516];
+        	 receivePacket = new DatagramPacket(data, data.length);
 
-         sendPacket = new DatagramPacket(data, receivePacket.getLength(),
-                               receivePacket.getAddress(), clientPort);
-         len = sendPacket.getLength();
-         System.out.println( "Simulator: Sending packet:");
-         if (controller.getOutputMode().equals("verbose")){
-        	 TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-         }
+        	 System.out.println("Simulator: Waiting for packet.");
+        	 try {
+        		 // Block until a datagram is received via sendReceiveSocket.
+        		 sendReceiveSocket.receive(receivePacket);
+        	 } catch(IOException e) {
+        		 e.printStackTrace();
+        		 System.exit(1);
+        	 }
 
-         // Send the datagram packet to the client via a new socket.
-         try {
-            // Construct a new datagram socket and bind it to any port
-            // on the local host machine. This socket will be used to
-            // send UDP Datagram packets.
-            sendSocket = new DatagramSocket();
-         } catch (SocketException se) {
-            se.printStackTrace();
-            System.exit(1);
-         }
-         
-         errorSimSend(sendSocket,sendPacket,data);
-         
-         if (controller.getOutputMode().equals("verbose")){
-        	 System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
-        	 System.out.println();
-         }
-         
-         System.out.println("This is the "+packetCount+" set of packets dealt with");
-         
-         packetCount++;
+        	 // After the connection is established, serverPort should be the thread's port
+        	 serverPort = receivePacket.getPort();
 
-         // We're finished with this socket, so close it.
-         sendSocket.close();
+        	 // Process the received datagram.
+        	 System.out.println("Simulator: Packet received:");
+        	 if (controller.getOutputMode().equals("verbose")){
+        		 TFTPReadWrite.printPacket(receivePacket, serverPort, "receive");
+        	 }
+
+             //Check if DATA packet and if <516 bytes, if so, restart is true
+             if (receivePacket.getData()[1] == 3 && receivePacket.getLength() < 516) {
+            	 restart = true;
+             }
+        	 
+        	 // Construct a datagram packet that is to be sent to a specified port
+        	 // on a specified host.
+        	 // The arguments are:
+        	 //  data - the packet data (a byte array). This is the response.
+        	 //  receivePacket.getLength() - the length of the packet data.
+        	 //     This is the length of the msg we just created.
+        	 //  receivePacket.getAddress() - the Internet address of the
+        	 //     destination host. Since we want to send a packet back to the
+        	 //     client, we extract the address of the machine where the
+        	 //     client is running from the datagram that was sent to us by
+        	 //     the client.
+        	 //  receivePacket.getPort() - the destination port number on the
+        	 //     destination host where the client is running. The client
+        	 //     sends and receives datagrams through the same socket/port,
+        	 //     so we extract the port that the client used to send us the
+        	 //     datagram, and use that as the destination port for the TFTP
+        	 //     packet.
+
+        	 sendPacket = new DatagramPacket(data, receivePacket.getLength(),
+        			 receivePacket.getAddress(), clientPort);
+        	 len = sendPacket.getLength();
+        	 System.out.println( "Simulator: Sending packet:");
+        	 if (controller.getOutputMode().equals("verbose")){
+        		 TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
+        	 }
+
+        	 // Send the datagram packet to the client via a new socket.
+        	 try {
+        		 // Construct a new datagram socket and bind it to any port
+        		 // on the local host machine. This socket will be used to
+        		 // send UDP Datagram packets.
+        		 sendSocket = new DatagramSocket();
+        	 } catch (SocketException se) {
+        		 se.printStackTrace();
+        		 System.exit(1);
+        	 }
+
+        	 errorSimSend(sendSocket,sendPacket,data);
+
+        	 if (controller.getOutputMode().equals("verbose")){
+        		 System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
+        		 System.out.println();
+        	 }
+
+        	 System.out.println("This is the "+packetCount+" set of packets dealt with");
+
+        	 packetCount++;
+
+        	 // We're finished with this socket, so close it.
+        	 sendSocket.close();
+         } // close 'if' that checks if the sim should start back at the top
       } // end of loop
 
    }
