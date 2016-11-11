@@ -45,7 +45,7 @@ public class TFTPSim{
       
       int clientPort, j=0, len, serverPort=2069;
       
-      packetCount = 1; //We start by dealing with the first packet
+      packetCount = 0; //We start by dealing with the request packet and the next packet is the "first" packet
 
       for(;;) { // loop forever
          // Construct a DatagramPacket for receiving packets up
@@ -64,7 +64,7 @@ public class TFTPSim{
          }
          len = receivePacket.getLength();
          clientPort = receivePacket.getPort();
-         if(packetCount==1) opCode = receivePacket.getData()[1]; //If it is the first packet then grab the operation code
+         if(packetCount==0) opCode = receivePacket.getData()[1]; //If it is the request packet then grab the operation code
          // Process the received datagram.
          System.out.println("Simulator: Packet received:");
          if (controller.getOutputMode().equals("verbose")){
