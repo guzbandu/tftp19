@@ -28,7 +28,7 @@ public class TFTPSim{
          // Construct a datagram socket and bind it to port 23
          // on the local host machine. This socket will be used to
          // receive UDP Datagram packets from clients.
-         receiveSocket = new DatagramSocket(2023);
+         receiveSocket = new DatagramSocket(23);
          // Construct a datagram socket and bind it to any available
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets from the server.
@@ -43,7 +43,7 @@ public class TFTPSim{
    {
       byte[] data;
       
-      int clientPort, j=0, len, serverPort=2069;
+      int clientPort, j=0, len, serverPort=69;
       
       packetCount = 0; //We start by dealing with the request packet and the next packet is the "first" packet
 
@@ -68,16 +68,7 @@ public class TFTPSim{
          // Process the received datagram.
          System.out.println("Simulator: Packet received:");
          if (controller.getOutputMode().equals("verbose")){
-        	 System.out.println("From host: " + receivePacket.getAddress());
-        	 System.out.println("Host port: " + clientPort);
-        	 System.out.println("Length: " + len);
-        	 System.out.println("Containing: " );
-         
-        	 // print the bytes
-        	 for (j=0;j<len;j++) {
-        		 System.out.print(data[j] + " | ");
-        	 }
-        	 System.out.println();
+        	 TFTPReadWrite.printPacket(receivePacket, clientPort, "receive");
 
         	 // Form a String from the byte array, and print the string.
         	 String received = new String(data,0,len);
@@ -103,15 +94,7 @@ public class TFTPSim{
         
          System.out.println("Simulator: sending packet.");
          if (controller.getOutputMode().equals("verbose")){
-        	 System.out.println("To host: " + sendPacket.getAddress());
-        	 System.out.println("Destination host port: " + sendPacket.getPort());
-        	 len = sendPacket.getLength();
-        	 System.out.println("Length: " + len);
-         	System.out.println("Containing: ");
-         	for (j=0;j<len;j++) {
-         		System.out.print(data[j] + " | ");
-         	}
-         	System.out.println();
+        	 TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
          }
 
          // Send the datagram packet to the server via the send/receive socket.
@@ -139,15 +122,7 @@ public class TFTPSim{
          // Process the received datagram.
          System.out.println("Simulator: Packet received:");
          if (controller.getOutputMode().equals("verbose")){
-        	 System.out.println("From host: " + receivePacket.getAddress());
-        	 System.out.println("Host port: " + serverPort);
-        	 len = receivePacket.getLength();
-        	 System.out.println("Length: " + len);
-        	 System.out.println("Containing: ");
-        	 for (j=0;j<len;j++) {
-        		 System.out.print(data[j] + " | ");
-        	 }
-        	 System.out.println();
+        	 TFTPReadWrite.printPacket(receivePacket, serverPort, "receive");
          }
 
          // Construct a datagram packet that is to be sent to a specified port
@@ -173,14 +148,7 @@ public class TFTPSim{
          len = sendPacket.getLength();
          System.out.println( "Simulator: Sending packet:");
          if (controller.getOutputMode().equals("verbose")){
-        	 System.out.println("To host: " + sendPacket.getAddress());
-        	 System.out.println("Destination host port: " + sendPacket.getPort());
-        	 System.out.println("Length: " + len);
-        	 System.out.println("Containing: ");
-        	 for (j=0;j<len;j++) {
-        		 System.out.print(data[j] + " | ");
-        	 }
-        	 System.out.println();
+        	 TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
          }
 
          // Send the datagram packet to the client via a new socket.

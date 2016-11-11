@@ -53,9 +53,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 2069;
+         sendPort = 69;
       else
-         sendPort = 2023;
+         sendPort = 23;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -131,15 +131,7 @@ public class TFTPClient {
        }
        //Output for sending packet
        if (controller.getOutputMode().equals("verbose")){
-    	   System.out.println("To host: " + sendPacket.getAddress());
-    	   System.out.println("Destination host port: " + sendPacket.getPort());
-    	   len = sendPacket.getLength();
-    	   System.out.println("Length: " + len);
-    	   System.out.println("Containing: ");
-    	   for (j=0;j<len;j++) {
-    		   System.out.print(msg[j] + " | ");
-    	   }
-	   System.out.println();
+    	   TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
        }
        
        //Sending initial request packet
@@ -195,13 +187,7 @@ public class TFTPClient {
 	       if(!full)
 	    	   System.out.println("Client: Packet received:");
 	       if (controller.getOutputMode().equals("verbose")&&!full){
-	    	   System.out.println("From host: " + receivePacket.getAddress());
-	    	   System.out.println("Host port: " + receivePacket.getPort());
-	    	   System.out.println("Length: " + len);
-	    	   for (j=0;j<len;j++) {
-	    		   System.out.print(data[j] + " | ");
-	    	   }
-	    	   System.out.println();
+	    	   TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 	       }
     	   int packetNo = (int) ((data[2] << 8) + data[3]);
     	   System.out.println("Packet No.: " + packetNo + "\n");
@@ -295,14 +281,7 @@ public class TFTPClient {
 		       }
 		       //Output for sending packet
 		       if (controller.getOutputMode().equals("verbose")&&!full){
-		    	   System.out.println("To host: " + sendPacket.getAddress());
-		    	   System.out.println("Destination host port: " + sendPacket.getPort());
-		    	   len = sendPacket.getLength();
-		    	   System.out.println("Length: " + len);
-		    	   for (j=0;j<len;j++) {
-		    		   System.out.print(msg[j] + " | ");
-		    	   }
-			   System.out.println();
+		    	   TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 		    	   System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
 		    	   // Form a String from the byte array, and print the string.
 		           String sending = new String(msg,0,len);
@@ -372,13 +351,7 @@ public class TFTPClient {
 			       if(!full)
 			    	   System.out.println("Client: Packet received:");
 			       if (controller.getOutputMode().equals("verbose")&&!full){
-			    	   System.out.println("From host: " + receivePacket.getAddress());
-			    	   System.out.println("Host port: " + receivePacket.getPort());
-			    	   System.out.println("Length: " + len);
-			    	   for (j=0;j<len;j++) {
-			    		   System.out.print(data[j] + " | ");
-			    	   }
-			    	   System.out.println();
+			    	   TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			       }
 		    	   packetNo = (int) ((data[2] << 8) + data[3]);
 		    	   System.out.println("Packet No.: " + packetNo);

@@ -157,14 +157,9 @@ public class TFTPClientConnection extends Thread {
 		//Output packet to send
 		System.out.println("Server: Sending packet:");
 		if (outputMode.equals("verbose")){
-			System.out.println("To host: " + sendPacket.getAddress());
-			System.out.println("Destination host port: " + sendPacket.getPort());
-			len = sendPacket.getLength();
-			System.out.println("Length: " + len);
-			System.out.println("Containing: ");
-			System.out.println("Packet No.: " + response[0] + " " + response[1] + " " + response[2] + " " + response[3]);
+			TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 		}
-		//Sending first packet, iterator starts at starts at packet to send next
+		//Sending first packet, iterator starts at packet to send next
 		int i = 2;
 		
 		try {
@@ -219,13 +214,7 @@ public class TFTPClientConnection extends Thread {
 			len = receivePacket.getLength();
 			System.out.println("Server: Packet received:");
 			if (controller.getOutputMode().equals("verbose")){
-				System.out.println("From host: " + receivePacket.getAddress());
-				System.out.println("Host port: " + receivePacket.getPort());
-				System.out.println("Length: " + len);
-				for (j=0;j<len;j++) {
-					System.out.print(data[j] + " | ");
-				}
-				System.out.println();
+				TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			}
 			int packetNo = (int) ((data[2] << 8) + data[3]);
 			System.out.println("Packet No.: " + packetNo + "\n");
@@ -274,13 +263,7 @@ public class TFTPClientConnection extends Thread {
 			len = receivePacket.getLength();
 			System.out.println("Server: Packet received:");
 			if (controller.getOutputMode().equals("verbose")){
-				System.out.println("From host: " + receivePacket.getAddress());
-				System.out.println("Host port: " + receivePacket.getPort());
-				System.out.println("Length: " + len);
-				for (j=0;j<len;j++) {
-					System.out.print(data[j] + " | ");
-				}
-				System.out.println();
+				TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			}
 			int packetNo = (int) ((data[2] << 8) + data[3]);
 			System.out.println("Packet No.: " + packetNo + "\n");
@@ -330,15 +313,7 @@ public class TFTPClientConnection extends Thread {
 			//Output for sending packet
 			System.out.println("Server: Sending packet:");
 			if (outputMode.equals("verbose")){
-				System.out.println("To host: " + sendPacket.getAddress());
-				System.out.println("Destination host port: " + sendPacket.getPort());
-				len = sendPacket.getLength();
-				System.out.println("Length: " + len);
-				System.out.println("Containing: ");
-				for (j=0;j<len;j++) {
-					System.out.print(response[j] + " | ");
-				}
-				System.out.println();
+				TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 			}
 
 			// Send the datagram packet to the server via the send socket.
@@ -397,13 +372,7 @@ public class TFTPClientConnection extends Thread {
 				len = receivePacket.getLength();
 				System.out.println("Server: Packet received:");
 				if (controller.getOutputMode().equals("verbose")){
-					System.out.println("From host: " + receivePacket.getAddress());
-					System.out.println("Host port: " + receivePacket.getPort());
-					System.out.println("Length: " + len);
-					for (j=0;j<len;j++) {
-						System.out.print(data[j] + " | ");
-					}
-					System.out.println();
+					TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 				}
 				packetNo = (int) ((data[2] << 8) + data[3]);
 				System.out.println("Packet No.: " + packetNo + "\n");

@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
 
 public class TFTPReadWrite {
 	private FileInputStream inStream;
@@ -100,5 +101,26 @@ public class TFTPReadWrite {
 	public int getNumSections() { return numSections; }
 	
 	public int getFileLength() { return fileLength; }
-	
+
+	/*
+	 * Process the packet: print its contents
+	 * Input: the packet itself, the port, and if it's send or receive
+	 * Output: prints out packet address, port, length and bytes
+	 */
+	public static void printPacket (DatagramPacket packet, int port, String type) {
+		if (type.equals("send")){
+			System.out.println("To host: " + packet.getAddress());
+			System.out.println("Destination host port: " + port);
+		} else {
+			System.out.println("From host: " + packet.getAddress());
+			System.out.println("Host port: " + port);
+		}
+		int len = packet.getLength();
+		System.out.println("Length: " + len);
+		System.out.println("Containing: ");
+		for (int j=0;j<len;j++) {
+			System.out.print(packet.getData()[j] + " | ");
+		}
+		System.out.println();
+	}
 }
