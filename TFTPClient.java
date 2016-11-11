@@ -45,6 +45,7 @@ public class TFTPClient {
       boolean quit = false; //Used for exit condition
       boolean full = false; //Used for the disk fills condition
       boolean last_packet = false; //Used to ensure final ack is sent
+      int packetNumber = 0;
       
       String path = controller.getPath();
       
@@ -52,9 +53,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
-         sendPort = 23;
+         sendPort = 2023;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -216,23 +217,28 @@ public class TFTPClient {
 	       }
 	       
 	       //Don't write once full just wait until the server stops sending packets potentially allowing the server to finish properly
-	       if (request.equalsIgnoreCase("READ")&&!full){
-	    	   try {
-	    		   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, len));
-	    	   } catch (TFTPException e) {
-	    		   if(!full) {
-	    			   System.out.println("The disk ran out of space while reading was in progress please wait for transmission to end.");
-	    			   full = true;
+	       if (packetNumber+1==packetNo) {
+	    	   if (request.equalsIgnoreCase("READ")&&!full){
+	    		   try {
+	    			   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, len));
+	    		   } catch (TFTPException e) {
+	    			   if(!full) {
+	    				   System.out.println("The disk ran out of space while reading was in progress please wait for transmission to end.");
+	    				   full = true;
+	    			   }
 	    		   }
+	    		   if(!full)
+	    			   System.out.println("Data length: " + len);
+	    		   if (len < 516)
+	    			   last_packet=true;
 	    	   }
-	    	   if(!full)
-	    		   System.out.println("Data length: " + len);
-	    	   if (len < 516)
-	    		   last_packet=true;
-	       }
-	       //Exit on disk full but transfer complete
-	       if(full&&len<516) {
-	    	   break;
+	    	   //Exit on disk full but transfer complete
+	    	   if(full&&len<516) {
+	    		   break;
+	    	   }
+	    	   packetNumber++;
+	       } else {
+	    	   System.out.println("Duplicate packet ignored.");
 	       }
 	       
 	       //Doesn't reset quit condition if error packet sent
@@ -360,6 +366,7 @@ public class TFTPClient {
 			       
 			       if(!receive_success) break;
 
+			       
 			       // Process the received datagram.
 			       len = receivePacket.getLength();
 			       if(!full)
@@ -375,6 +382,8 @@ public class TFTPClient {
 			       }
 		    	   packetNo = (int) ((data[2] << 8) + data[3]);
 		    	   System.out.println("Packet No.: " + packetNo);
+		    	   
+		    	   //TODO we may need logic here in case we receive a packet that is not the final ack
 
 		       }
 	       }
