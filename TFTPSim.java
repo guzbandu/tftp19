@@ -28,7 +28,7 @@ public class TFTPSim{
          // Construct a datagram socket and bind it to port 23
          // on the local host machine. This socket will be used to
          // receive UDP Datagram packets from clients.
-         receiveSocket = new DatagramSocket(23);
+         receiveSocket = new DatagramSocket(2023);
          // Construct a datagram socket and bind it to any available
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets from the server.
@@ -43,7 +43,7 @@ public class TFTPSim{
    {
       byte[] data;
       
-      int clientPort, j=0, len, serverPort=69;
+      int clientPort, j=0, len, serverPort=2069;
       
       packetCount = 0; //We start by dealing with the request packet and the next packet is the "first" packet
 

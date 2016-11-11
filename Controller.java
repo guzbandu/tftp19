@@ -7,8 +7,8 @@ public class Controller extends Thread{
 	public boolean quit = false;
 	private String user;
 	private String path = "";
-	private String testSituation = "1";
-	private String affectedOpcode = "1";
+	private String testSituation = "2";
+	private String affectedOpcode = "2";
 	private String packetNumber = "65";
 	private String delayTime = "2000";
 

@@ -45,7 +45,8 @@ public class TFTPClient {
       boolean quit = false; //Used for exit condition
       boolean full = false; //Used for the disk fills condition
       boolean last_packet = false; //Used to ensure final ack is sent
-      int packetNumber = 0;
+      int packetNumber = 1;
+      int ackPacketNumber = 0; //the initial request returns a 00 ack
       
       String path = controller.getPath();
       
@@ -53,9 +54,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
-         sendPort = 23;
+         sendPort = 2023;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -191,7 +192,7 @@ public class TFTPClient {
 	       }
     	   int packetNo = (int) ((data[2] << 8) + data[3]);
     	   System.out.println("Packet No.: " + packetNo + "\n");
-	       
+    	   
 	       //Checking for error packets
 	       if(5 == (int)((data[0] << 8) + data[1])) {
 	    	   request = "ERROR";
@@ -203,7 +204,7 @@ public class TFTPClient {
 	       }
 	       
 	       //Don't write once full just wait until the server stops sending packets potentially allowing the server to finish properly
-	       if (packetNumber+1==packetNo) {
+	       if (packetNumber==packetNo) {
 	    	   if (request.equalsIgnoreCase("READ")&&!full){
 	    		   try {
 	    			   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, len));
@@ -224,7 +225,10 @@ public class TFTPClient {
 	    	   }
 	    	   packetNumber++;
 	       } else {
-	    	   System.out.println("Duplicate packet ignored.");
+	    	   if(request.equalsIgnoreCase("READ")) {
+	    		   System.out.println("Duplicate packet ignored.");
+	    		   System.out.println("");
+	    	   }
 	       }
 	       
 	       //Doesn't reset quit condition if error packet sent
@@ -232,30 +236,32 @@ public class TFTPClient {
 	     
 	       //Preparing next packet
 	       if(request.equalsIgnoreCase("WRITE")) {
-	    	   int length = 512;
-	    	   if (i == fileHandler.getNumSections())
-	    		   length = fileHandler.getFileLength() - ((fileHandler.getNumSections()-1) * 512);
-	    	   msg = new byte[length+4];
-	    	   msg[0] = 0;
-	    	   msg[1] = 3;
-	    	   msg[2] = (byte) ((i >> 8)& 0xff);
-	    	   msg[3] = (byte) (i & 0xff);
-	    	   try {
-	    		   System.arraycopy(fileHandler.readFileBytes(length), 0, msg, 4, length);
-	    	   } catch (TFTPException e) { //Error
-	    		   System.out.println("Unable to access either the parent directory or file " + path + filename + "\n" );
-	    		   length = 0;
-		    	   msg = new byte[4];
-		    	   msg[0] = 0;
-		    	   msg[1] = 3;
-		    	   msg[2] = (byte) ((i >> 8)& 0xff);
-		    	   msg[3] = (byte) (i & 0xff);	    		   
-	    		   quit = true;
-	    		   //Make this the final packet to the server and just send an empty string.
+	    	   if(ackPacketNumber==packetNo ){
+	    		   int length = 512;
+	    		   if (i == fileHandler.getNumSections())
+	    			   length = fileHandler.getFileLength() - ((fileHandler.getNumSections()-1) * 512);
+	    		   msg = new byte[length+4];
+	    		   msg[0] = 0;
+	    		   msg[1] = 3;
+	    		   msg[2] = (byte) ((i >> 8)& 0xff);
+	    		   msg[3] = (byte) (i & 0xff);
+	    		   try {
+	    			   System.arraycopy(fileHandler.readFileBytes(length), 0, msg, 4, length);
+	    		   } catch (TFTPException e) { //Error
+	    			   System.out.println("Unable to access either the parent directory or file " + path + filename + "\n" );
+	    			   length = 0;
+	    			   msg = new byte[4];
+	    			   msg[0] = 0;
+	    			   msg[1] = 3;
+	    			   msg[2] = (byte) ((i >> 8)& 0xff);
+	    			   msg[3] = (byte) (i & 0xff);	    		   
+	    			   quit = true;
+	    			   //Make this the final packet to the server and just send an empty string.
+	    		   }
+	    		   len = length+4;
+	    		   if(i >= fileHandler.getNumSections() )
+	    			   quit = true;
 	    	   }
-	    	   len = length+4;
-	    	   if(i >= fileHandler.getNumSections() )
-	    		   quit = true;
 	       } else if(request.equalsIgnoreCase("READ")) {
 	    	   msg = new byte[4];
 	    	   msg[0] = 0;
@@ -264,47 +270,56 @@ public class TFTPClient {
 	    	   msg[3] = data[3];
 	    	   len = 4;
 	       }
-	       
+
 	       if(!request.equalsIgnoreCase("ERROR")) {
-	    	   int p; // Port we are sending to
-	    	   // Sim's sendSocket is 23, Server's is the Thread's
-	    	   if (controller.getRunMode().equals("test")) p = sendPort;
-	    	   else p = receivePacket.getPort();
-	    	   
-	    	   //Sending packet
-		       try {
-		    	   sendPacket = new DatagramPacket(msg, len,
-		    			   InetAddress.getLocalHost(), p);
-		       } catch (UnknownHostException e) {
-		    	   e.printStackTrace();
-		    	   System.exit(1);
-		       }
-		       //Output for sending packet
-		       if (controller.getOutputMode().equals("verbose")&&!full){
-		    	   TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-		    	   System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
-		    	   // Form a String from the byte array, and print the string.
-		           String sending = new String(msg,0,len);
-		           System.out.println(sending);
-		       }
-	    	   packetNo = (int) ((msg[2] << 8) + msg[3]);
-	    	   System.out.println("Packet No.: " + packetNo);
-	
-		       // Send the datagram packet to the server via the send/receive socket.
-		
-		       try {
-		           sendReceiveSocket.send(sendPacket);
-		        } catch (IOException e) {
-		           e.printStackTrace();
-		           System.exit(1);
-		        }
-		       if (controller.getOutputMode().equals("verbose")&&!full)
-		    	   System.out.println("Client: Packet sent.\n");
-		
-		       // Construct a DatagramPacket for receiving packets up
-		       // to 100 bytes long (the length of the byte array).
-		
-		       i++;
+	    	   if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo)) {
+	    		   int p; // Port we are sending to
+	    		   // Sim's sendSocket is 23, Server's is the Thread's
+	    		   if (controller.getRunMode().equals("test")) p = sendPort;
+	    		   else p = receivePacket.getPort();
+
+	    		   //Sending packet
+	    		   try {
+	    			   sendPacket = new DatagramPacket(msg, len,
+	    					   InetAddress.getLocalHost(), p);
+	    		   } catch (UnknownHostException e) {
+	    			   e.printStackTrace();
+	    			   System.exit(1);
+	    		   }
+	    		   //Output for sending packet
+	    		   if (controller.getOutputMode().equals("verbose")&&!full){
+	    			   TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
+	    			   System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
+	    			   // Form a String from the byte array, and print the string.
+	    			   String sending = new String(msg,0,len);
+	    			   System.out.println(sending);
+	    		   }
+	    		   packetNo = (int) ((msg[2] << 8) + msg[3]);
+	    		   System.out.println("Packet No.: " + packetNo);
+
+	    		   // Send the datagram packet to the server via the send/receive socket.
+
+	    		   try {
+	    			   sendReceiveSocket.send(sendPacket);
+	    		   } catch (IOException e) {
+	    			   e.printStackTrace();
+	    			   System.exit(1);
+	    		   }
+	    		   if (controller.getOutputMode().equals("verbose")&&!full)
+	    			   System.out.println("Client: Packet sent.\n");
+
+	    		   // Construct a DatagramPacket for receiving packets up
+	    		   // to 100 bytes long (the length of the byte array).
+
+	    		   i++;
+	    		   
+	    		   ackPacketNumber++;
+	    	   } else if (request.equalsIgnoreCase("WRITE")&&ackPacketNumber!=packetNo&&!quit) {
+	    		   System.out.println("Ignoring duplicate ack.");
+	    		   System.out.println("");
+	    		   if(i >= fileHandler.getNumSections() )
+	    			   quit = true;
+	    	   }
 		       
 		       if(!full)
 		    	   System.out.println();
@@ -355,8 +370,17 @@ public class TFTPClient {
 			       }
 		    	   packetNo = (int) ((data[2] << 8) + data[3]);
 		    	   System.out.println("Packet No.: " + packetNo);
-		    	   
-		    	   //TODO we may need logic here in case we receive a packet that is not the final ack
+
+		    	   if(request.equalsIgnoreCase("WRITE")) {
+						System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo);
+						if(ackPacketNumber==packetNo) {
+							ackPacketNumber++;
+						} else {
+							System.out.println("Duplicate ack ignored.");
+							System.out.println("");
+							quit=false;
+						}
+					}
 
 		       }
 	       }
@@ -375,6 +399,7 @@ public class TFTPClient {
     		   System.out.println("Error closing file " + path + filename + "\n" );
     	   }
        }
+    
    }
 
    public static void main(String args[]){

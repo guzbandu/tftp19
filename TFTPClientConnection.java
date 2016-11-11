@@ -49,7 +49,8 @@ public class TFTPClientConnection extends Thread {
 		byte[] data = receivePacket.getData();
 		byte[] response = new byte[4];
 		boolean quit = false;
-		int packetNumber = 0;
+		int packetNumber = 1;
+		int ackPacketNumber = 1;
 
 		Request req; // READ, WRITE or ERROR
 
@@ -274,18 +275,20 @@ public class TFTPClientConnection extends Thread {
 			}
 			//Creating packet to send, setting op code and data to send if client reading
 			if(req == Request.READ) {
-				int length = 512;
-				if (i == fileHandler.getNumSections())
-					length = fileHandler.getFileLength() - ((fileHandler.getNumSections()-1) * 512);
-				response = new byte[length+4];
-				response[0] = 0;
-				response[1] = 3;
-				response[2] = (byte) ((i >> 8)& 0xff);
-				response[3] = (byte) (i & 0xff);
-				System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
-				len = length+4;
+				if(ackPacketNumber==packetNo) {
+					int length = 512;
+					if (i == fileHandler.getNumSections())
+						length = fileHandler.getFileLength() - ((fileHandler.getNumSections()-1) * 512);
+					response = new byte[length+4];
+					response[0] = 0;
+					response[1] = 3;
+					response[2] = (byte) ((i >> 8)& 0xff);
+					response[3] = (byte) (i & 0xff);
+					System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
+					len = length+4;
+				} 
 			} else if(req == Request.WRITE) {
-				if(packetNumber+1==packetNo) {
+				if(packetNumber==packetNo) {
 					response = new byte[4];
 					response[0] = 0;
 					response[1] = 4;
@@ -306,32 +309,47 @@ public class TFTPClientConnection extends Thread {
 					System.out.println("Duplicate packet ignored.");
 				}
 			}
-			
-			sendPacket = new DatagramPacket(response, response.length,
-					receivePacket.getAddress(), receivePacket.getPort());
 
-			//Output for sending packet
-			System.out.println("Server: Sending packet:");
-			if (outputMode.equals("verbose")){
-				TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-			}
+			if(req == Request.WRITE || (req== Request.READ && ackPacketNumber==packetNo)) {
+				sendPacket = new DatagramPacket(response, response.length,
+						receivePacket.getAddress(), receivePacket.getPort());
 
-			// Send the datagram packet to the server via the send socket.
-			try {
-				sendReceiveSocket.send(sendPacket);
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-			if (outputMode.equals("verbose")){
-				System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-				System.out.println();
-			}
+				//Output for sending packet
+				System.out.println("Server: Sending packet:");
+				if (outputMode.equals("verbose")){
+					TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
+				}
 
-			if ((req == Request.READ) && i >= fileHandler.getNumSections())	{
-				quit = true;
+				// Send the datagram packet to the server via the send socket.
+				try {
+					sendReceiveSocket.send(sendPacket);
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+				if (outputMode.equals("verbose")){
+					System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+					System.out.println();
+				}
+				if (req== Request.READ && ackPacketNumber==packetNo) {
+					ackPacketNumber++;
+				}
+
+				System.out.println("i:"+i+" fileHandler.getNumSections():"+fileHandler.getNumSections());
+				if ((req == Request.READ) && i >= fileHandler.getNumSections())	{
+					quit = true;
+					System.out.println("Setting quit to true");
+				}
+				i++;
+
+			} else if (req== Request.READ && ackPacketNumber!=packetNo) {
+				System.out.println("Duplicate ack ignored.");
+				System.out.println("");
+				if (i >= fileHandler.getNumSections())	{
+					quit = true;
+					System.out.println("Setting quit to true");
+				}
 			}
-			i++;
 			
 			if(quit&&req==Request.READ) {
 				if (controller.getOutputMode().equals("verbose")){
@@ -376,6 +394,17 @@ public class TFTPClientConnection extends Thread {
 				}
 				packetNo = (int) ((data[2] << 8) + data[3]);
 				System.out.println("Packet No.: " + packetNo + "\n");
+				
+				if(req==Request.READ) {
+					System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo);
+					if(ackPacketNumber==packetNo) {
+						ackPacketNumber++;
+					} else {
+						System.out.println("Duplicate ack.");
+						System.out.println("");
+						quit=false;
+					}
+				}
 				//TODO we may need some logic in case this is not the last packet that has been received
 			}
 		}
