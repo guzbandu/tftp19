@@ -49,6 +49,7 @@ public class TFTPClientConnection extends Thread {
 		byte[] data = receivePacket.getData();
 		byte[] response = new byte[4];
 		boolean quit = false;
+		int packetNumber = 0;
 
 		Request req; // READ, WRITE or ERROR
 
@@ -301,20 +302,25 @@ public class TFTPClientConnection extends Thread {
 				System.arraycopy(fileHandler.readFileBytes(length), 0, response, 4, length);
 				len = length+4;
 			} else if(req == Request.WRITE) {
-				response = new byte[4];
-				response[0] = 0;
-				response[1] = 4;
-				response[2] = data[2];
-				response[3] = data[3];
-				len = 4;
-				try {
-					fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
-				} catch(TFTPException e) {
-					response = new byte[516];
-					byte[] error = e.getErrorBytes();
-					System.arraycopy(error, 0, response, 0, error.length);
-					req=Request.ERROR;
-					quit = true;
+				if(packetNumber+1==packetNo) {
+					response = new byte[4];
+					response[0] = 0;
+					response[1] = 4;
+					response[2] = data[2];
+					response[3] = data[3];
+					len = 4;
+					try {
+						fileHandler.writeFilesBytes(Arrays.copyOfRange(receivePacket.getData(), 4, receivePacket.getLength()));
+					} catch(TFTPException e) {
+						response = new byte[516];
+						byte[] error = e.getErrorBytes();
+						System.arraycopy(error, 0, response, 0, error.length);
+						req=Request.ERROR;
+						quit = true;
+					}
+					packetNumber++;
+				} else {
+					System.out.println("Duplicate packet ignored.");
 				}
 			}
 			
@@ -401,6 +407,7 @@ public class TFTPClientConnection extends Thread {
 				}
 				packetNo = (int) ((data[2] << 8) + data[3]);
 				System.out.println("Packet No.: " + packetNo + "\n");
+				//TODO we may need some logic in case this is not the last packet that has been received
 			}
 		}
 
