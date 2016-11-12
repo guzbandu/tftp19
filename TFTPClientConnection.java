@@ -280,7 +280,7 @@ public class TFTPClientConnection extends Thread {
 				if (i < fileHandler.getNumSections()) {
 					finalPacketCount = 0;
 				}
-				if (ackPacketNumber==packetNo&&i == fileHandler.getNumSections())	{
+				if (ackPacketNumber==packetNo && i>=fileHandler.getNumSections())	{
 					finalPacketCount++;
 				}
 				if(ackPacketNumber==packetNo&&finalPacketCount<=1) {
