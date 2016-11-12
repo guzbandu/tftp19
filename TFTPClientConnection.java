@@ -358,10 +358,10 @@ public class TFTPClientConnection extends Thread {
 				}
 				i++;
 
-			} else if (req== Request.READ && ackPacketNumber!=packetNo && finalPacketCount>=1) {
+			} else if (req== Request.READ && ackPacketNumber!=packetNo) {
 				System.out.println("Duplicate ack ignored.");
 				System.out.println("");
-				if (i >= fileHandler.getNumSections())	{
+				if (i >= fileHandler.getNumSections()&& finalPacketCount>=1)	{
 					quit = true;
 				}
 			}
