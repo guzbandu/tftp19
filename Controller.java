@@ -7,10 +7,10 @@ public class Controller extends Thread{
 	public boolean quit = false;
 	private String user;
 	private String path = "";
-	private String testSituation = "2";
-	private String affectedOpcode = "2";
+	private String testSituation = "1";
+	private String affectedOpcode = "3";
 	private String packetNumber = "65";
-	private String delayTime = "2000";
+	private String delayTime = "4000";
 
 	public static TFTPClient client;
 

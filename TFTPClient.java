@@ -28,7 +28,7 @@ public class TFTPClient {
          // port on the local host machine. This socket will be used to
          // send and receive UDP Datagram packets.
          sendReceiveSocket = new DatagramSocket();
-	     sendReceiveSocket.setSoTimeout(1000);
+	     sendReceiveSocket.setSoTimeout(2000);
       } catch (SocketException se) {   // Can't create the socket.
          se.printStackTrace();
          System.exit(1);
@@ -54,9 +54,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
-         sendPort = 23;
+         sendPort = 2023;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -168,15 +168,17 @@ public class TFTPClient {
 	    	   }
 	    	   if(!receive_success) {
 	    		   //we did not receive a packet before timing out, re-send our packet
-	    	       //Sending request packet
-	    	       try {
-	    	           sendReceiveSocket.send(sendPacket);
-	    	        } catch (IOException e) {
-	    	           e.printStackTrace();
-	    	           System.exit(1);
-	    	        }
-	    	       if (controller.getOutputMode().equals("verbose"))
-	    	    	   System.out.println("Client: Re-sending packet.\n");
+	    		   //Sending request packet
+	    		   if(sendPacket.getData()[1]!=1) {
+	    			   try {
+	    				   sendReceiveSocket.send(sendPacket);
+	    			   } catch (IOException e) {
+	    				   e.printStackTrace();
+	    				   System.exit(1);
+	    			   }
+	    			   if (controller.getOutputMode().equals("verbose"))
+	    				   System.out.println("Client: Re-sending packet.\n");
+	    		   }
 	    	   }
 	    	   resend_count++;
 	       }
@@ -392,7 +394,7 @@ public class TFTPClient {
     	   } catch (TFTPException e) {
     		   System.out.println("Error closing file " + path + filename + "\n" );
     	   }
-       } else {
+       } else if (request.equalsIgnoreCase("WRITE")) {
     	   try {
     		   fileHandler.closeInFile();
     	   } catch (TFTPException e) {
