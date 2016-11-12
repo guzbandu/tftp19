@@ -374,7 +374,6 @@ public class TFTPClient {
 		    	   System.out.println("Packet No.: " + packetNo);
 
 		    	   if(request.equalsIgnoreCase("WRITE")) {
-						System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo);
 						if(ackPacketNumber==packetNo) {
 							ackPacketNumber++;
 						} else {
