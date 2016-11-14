@@ -37,6 +37,14 @@ public class TFTPException extends RuntimeException{
 			error[3]= 3;
 			errmsg = "Error Code #3: Disk Full".getBytes();
 		}
+		if(errnum == 4){
+			error[3]= 4;
+			errmsg = "Error Code #4: Illegal TFTP operation".getBytes();
+		}
+		if(errnum == 5){
+			error[3]= 5;
+			errmsg = "Error Code #5: Unknown transfer ID".getBytes();
+		}
 		if(errnum == 6){
 			error[3]= 6;
 			errmsg = "Error Code #6: File Already Exists".getBytes();
