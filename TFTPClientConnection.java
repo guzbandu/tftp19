@@ -130,6 +130,7 @@ public class TFTPClientConnection extends Thread {
 			if (fileHandler.getFileLength() < 512) {
 				length = fileHandler.getFileLength();
 				quit = true;
+				System.out.println("quit=true");
 			}
 			response = new byte[length + 4];
 			System.arraycopy(readResp, 0, response, 0, 4);
@@ -177,7 +178,7 @@ public class TFTPClientConnection extends Thread {
 		}
 
 		//Handle final ack
-		if (req==Request.READ && i >= fileHandler.getNumSections()) {
+		if (req==Request.READ && quit) {
 			if (controller.getOutputMode().equals("verbose")){
 				System.out.println("Waiting for packet");
 			}
@@ -222,7 +223,6 @@ public class TFTPClientConnection extends Thread {
 			int packetNo = (int) ((data[2] << 8) + data[3]);
 			System.out.println("Packet No.: " + packetNo + "\n");
 
-			quit = true;
 		}
 
 		//Main loop
@@ -283,6 +283,7 @@ public class TFTPClientConnection extends Thread {
 				if (ackPacketNumber==packetNo && i>=fileHandler.getNumSections())	{
 					finalPacketCount++;
 				}
+				System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo+" finalPacketCount:"+finalPacketCount);
 				if(ackPacketNumber==packetNo&&finalPacketCount<=1) {
 					int length = 512;
 					if (i == fileHandler.getNumSections())
@@ -328,6 +329,7 @@ public class TFTPClientConnection extends Thread {
 				}
 			}
 
+			System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo+" finalPacketCount:"+finalPacketCount);
 			if(req == Request.WRITE || (req== Request.READ && ackPacketNumber==packetNo&&finalPacketCount<=1)) {
 				sendPacket = new DatagramPacket(response, response.length,
 						receivePacket.getAddress(), receivePacket.getPort());
@@ -360,8 +362,9 @@ public class TFTPClientConnection extends Thread {
 
 			} else if (req== Request.READ && ackPacketNumber!=packetNo) {
 				System.out.println("Duplicate ack ignored.");
-				System.out.println("");
+				System.out.println("");				
 				if (i >= fileHandler.getNumSections()&& finalPacketCount>=1)	{
+					System.out.println("quit = true");
 					quit = true;
 				}
 			}
@@ -418,6 +421,7 @@ public class TFTPClientConnection extends Thread {
 						System.out.println("Duplicate ack.");
 						System.out.println("");
 						quit=false;
+						System.out.println("quit = false");
 					}
 				}
 			}
@@ -426,6 +430,7 @@ public class TFTPClientConnection extends Thread {
 		// We're finished with this socket, so close it.
 		sendReceiveSocket.close();
 		System.out.println("File Transfer Complete");
+		System.out.println();
 	    if(req == Request.READ) {
 	  	   try {
 	    		   fileHandler.closeInFile();

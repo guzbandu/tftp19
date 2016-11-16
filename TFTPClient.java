@@ -54,9 +54,9 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
-         sendPort = 23;
+         sendPort = 2023;
          
        msg[0] = 0;
        if(request.equalsIgnoreCase("READ"))
@@ -261,8 +261,10 @@ public class TFTPClient {
 	    			   //Make this the final packet to the server and just send an empty string.
 	    		   }
 	    		   len = length+4;
-	    		   if(i >= fileHandler.getNumSections() )
+	    		   if(i >= fileHandler.getNumSections() ) {
 	    			   quit = true;
+	    			   System.out.println("quit=true");
+	    		   }
 	    	   }
 	       } else if(request.equalsIgnoreCase("READ")) {
 	    	   msg = new byte[4];
@@ -273,6 +275,7 @@ public class TFTPClient {
 	    	   len = 4;
 	       }
 
+	       System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo);
 	       if(!request.equalsIgnoreCase("ERROR")) {
 	    	   if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo)) {
 	    		   int p; // Port we are sending to
@@ -330,7 +333,7 @@ public class TFTPClient {
 		       if(last_packet) break;
 		       
 		       /* Wait for final acknowledgement */
-		       if(quit&&request.equalsIgnoreCase("WRITE")) {
+		       if(quit&&request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo) {
 			       if (controller.getOutputMode().equals("verbose")&&!full)
 			    	   System.out.println("Client: Waiting for packet.");
 
