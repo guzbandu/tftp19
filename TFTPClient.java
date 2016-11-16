@@ -229,7 +229,7 @@ public class TFTPClient {
 	       } else {
 	    	   if(request.equalsIgnoreCase("READ")) {
 	    		   System.out.println("Duplicate packet ignored.");
-	    		   System.out.println("");
+	    		   System.out.println();
 	    	   }
 	       }
 	       
@@ -263,7 +263,6 @@ public class TFTPClient {
 	    		   len = length+4;
 	    		   if(i >= fileHandler.getNumSections() ) {
 	    			   quit = true;
-	    			   System.out.println("quit=true");
 	    		   }
 	    	   }
 	       } else if(request.equalsIgnoreCase("READ")) {
@@ -275,7 +274,6 @@ public class TFTPClient {
 	    	   len = 4;
 	       }
 
-	       System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo);
 	       if(!request.equalsIgnoreCase("ERROR")) {
 	    	   if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo)) {
 	    		   int p; // Port we are sending to
