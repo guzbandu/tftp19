@@ -77,7 +77,7 @@ public class Controller extends Thread{
         }
         if(command.equals("path")) {
         	System.out.println("\nEnter a file path (Replace \\ with \\\\ or /):");
-        	path = scanner.nextLine();
+        	this.path = scanner.nextLine();
         	System.out.println();
         }
         //Client input
@@ -93,14 +93,14 @@ public class Controller extends Thread{
 				String filename = scanner.nextLine();
 				System.out.println();
 				TFTPClient c = new TFTPClient();
-				c.sendAndReceive("READ", filename, transferMode);
+				c.sendAndReceive("READ", filename, transferMode, path, outputMode, runMode);
 			}
 			if(command.equals("write")){
 				System.out.print("\nEnter a file name:");
 				String filename = scanner.nextLine();
 				System.out.println();
             	TFTPClient c = new TFTPClient();
-            	c.sendAndReceive("WRITE", filename, transferMode);
+            	c.sendAndReceive("WRITE", filename, transferMode, path, outputMode, runMode);
 			}
 		}
 		
@@ -142,7 +142,7 @@ public class Controller extends Thread{
 	}
 	
 	public String getPath() {
-		return path;
+		return this.path;
 	}
 	public String getOutputMode() {
 		return outputMode;
@@ -161,5 +161,17 @@ public class Controller extends Thread{
 	}
 	public int getDelayTime() {
 		return Integer.parseInt(delayTime);
+	}
+	
+	public void setPath(String pth) {
+		path = pth;
+	}
+		 
+	public void setRunMode(String rn) {
+		runMode = rn;
+	}
+	
+	public String getTransferMode() {
+		return transferMode;
 	}
 }

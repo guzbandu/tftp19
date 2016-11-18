@@ -6,9 +6,11 @@ import java.net.SocketTimeoutException;
 public class TFTPReceive extends Thread {
 	
 	private DatagramSocket sendReceiveSocket;
+	private TFTPClient parent;
 
-	public TFTPReceive(DatagramSocket sendReceiveSocket) {
+	public TFTPReceive(DatagramSocket sendReceiveSocket, TFTPClient parent) {
 		this.sendReceiveSocket = sendReceiveSocket;
+		this.parent = parent;
 	}
 
 	@Override
@@ -18,7 +20,7 @@ public class TFTPReceive extends Thread {
 	           sendReceiveSocket.receive(TFTPClient.receivePacket);
 	           TFTPClient.set_receive_success(true);
 	       } catch (SocketTimeoutException e) {
-	   			if(TFTPClient.controller.quit) {
+	   			if(parent.controller.quit) {
 	   				sendReceiveSocket.close();
 	   				System.exit(0);
 	   			} else {

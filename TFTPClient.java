@@ -12,7 +12,7 @@ public class TFTPClient {
    public static DatagramPacket receivePacket;
    private DatagramPacket sendPacket;
    private DatagramSocket sendReceiveSocket;
-   public static Controller controller;
+   public Controller controller;
    private int resend_count = 0; //Used to track the number of times we try to resend a packet
    private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
    private static boolean receive_success = false; //Used to track if our threads receive was successful
@@ -23,6 +23,7 @@ public class TFTPClient {
    
    public TFTPClient()
    {
+	   controller = new Controller(this);
       try {
          // Construct a datagram socket and bind it to any available
          // port on the local host machine. This socket will be used to
@@ -35,7 +36,7 @@ public class TFTPClient {
       }
    }
 
-   public void sendAndReceive(String request, String filename, String mode)
+   public void sendAndReceive(String request, String filename, String mode, String path, String outputMode, String runMode)
    {
       byte[] msg = new byte[100], // message we send
              fn, // filename as an array of bytes
@@ -48,13 +49,13 @@ public class TFTPClient {
       int packetNumber = 1;
       int ackPacketNumber = 0; //the initial request returns a 00 ack
       
-      String path = controller.getPath();
-      
+      System.out.println("path:"+path);
+            
       //If user enters "normal" as the mode
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
-      if (controller.getRunMode().equals("normal")) 
-         sendPort = 69;
+      if (runMode.equals("normal")) 
+         sendPort = 2069;
       else
          sendPort = 23;
          
@@ -131,7 +132,7 @@ public class TFTPClient {
     	   System.exit(1);
        }
        //Output for sending packet
-       if (controller.getOutputMode().equals("verbose")){
+       if (outputMode.equals("verbose")){
     	   TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
        }
        
@@ -142,7 +143,7 @@ public class TFTPClient {
            e.printStackTrace();
            System.exit(1);
         }
-       if (controller.getOutputMode().equals("verbose"))
+       if (outputMode.equals("verbose"))
     	   System.out.println("Client: Packet sent.\n");
        
        int i = 1;
@@ -152,14 +153,14 @@ public class TFTPClient {
     	   data = new byte[516];
 	       receivePacket = new DatagramPacket(data, data.length);
 	       
-	       if (controller.getOutputMode().equals("verbose")&&!full)
+	       if (outputMode.equals("verbose")&&!full)
 	    	   System.out.println("Client: Waiting for packet.");
 	       
 	       //Receiving packet
 	       receive_success=false; //Start loop not having received anything
 	       resend_count = 0;
 	       while(!receive_success&&resend_count<MAX_RESEND) {
-	    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket);
+	    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
 	    	   receiveConnection.start();
 	    	   try{
 	    		   receiveConnection.join();
@@ -176,7 +177,7 @@ public class TFTPClient {
 	    				   e.printStackTrace();
 	    				   System.exit(1);
 	    			   }
-	    			   if (controller.getOutputMode().equals("verbose"))
+	    			   if (outputMode.equals("verbose"))
 	    				   System.out.println("Client: Re-sending packet.\n");
 	    		   }
 	    	   }
@@ -189,7 +190,7 @@ public class TFTPClient {
 	       len = receivePacket.getLength();
 	       if(!full)
 	    	   System.out.println("Client: Packet received:");
-	       if (controller.getOutputMode().equals("verbose")&&!full){
+	       if (outputMode.equals("verbose")&&!full){
 	    	   TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 	       }
     	   int packetNo = (int) ((data[2] << 8) + data[3]);
@@ -278,7 +279,7 @@ public class TFTPClient {
 	    	   if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo)) {
 	    		   int p; // Port we are sending to
 	    		   // Sim's sendSocket is 23, Server's is the Thread's
-	    		   if (controller.getRunMode().equals("test")) p = sendPort;
+	    		   if (runMode.equals("test")) p = sendPort;
 	    		   else p = receivePacket.getPort();
 
 	    		   //Sending packet
@@ -290,7 +291,7 @@ public class TFTPClient {
 	    			   System.exit(1);
 	    		   }
 	    		   //Output for sending packet
-	    		   if (controller.getOutputMode().equals("verbose")&&!full){
+	    		   if (outputMode.equals("verbose")&&!full){
 	    			   TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 	    			   System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
 	    			   // Form a String from the byte array, and print the string.
@@ -308,7 +309,7 @@ public class TFTPClient {
 	    			   e.printStackTrace();
 	    			   System.exit(1);
 	    		   }
-	    		   if (controller.getOutputMode().equals("verbose")&&!full)
+	    		   if (outputMode.equals("verbose")&&!full)
 	    			   System.out.println("Client: Packet sent.\n");
 
 	    		   // Construct a DatagramPacket for receiving packets up
@@ -332,14 +333,14 @@ public class TFTPClient {
 		       
 		       /* Wait for final acknowledgement */
 		       if(quit&&request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo) {
-			       if (controller.getOutputMode().equals("verbose")&&!full)
+			       if (outputMode.equals("verbose")&&!full)
 			    	   System.out.println("Client: Waiting for packet.");
 
 			       //Receiving packet
 			       receive_success=false; //Start loop not having received anything
 			       resend_count = 0;
 			       while(!receive_success&&resend_count<MAX_RESEND) {
-			    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket);
+			    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
 			    	   receiveConnection.start();
 			    	   try{
 			    		   receiveConnection.join();
@@ -355,7 +356,7 @@ public class TFTPClient {
 			    	           e.printStackTrace();
 			    	           System.exit(1);
 			    	        }
-			    	       if (controller.getOutputMode().equals("verbose"))
+			    	       if (outputMode.equals("verbose"))
 			    	    	   System.out.println("Client: Re-sending packet.\n");
 			    	   }
 			    	   resend_count++;
@@ -368,7 +369,7 @@ public class TFTPClient {
 			       len = receivePacket.getLength();
 			       if(!full)
 			    	   System.out.println("Client: Packet received:");
-			       if (controller.getOutputMode().equals("verbose")&&!full){
+			       if (outputMode.equals("verbose")&&!full){
 			    	   TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			       }
 		    	   packetNo = (int) ((data[2] << 8) + data[3]);
@@ -387,13 +388,16 @@ public class TFTPClient {
 		       }
 	       }
        }
+       
        System.out.println("File Transfer Complete");
+       System.out.println();
+       
        if(request.equalsIgnoreCase("READ")) {
     	   try {
     		   fileHandler.closeOutFile();
     	   } catch (TFTPException e) {
     		   System.out.println("Error closing file " + path + filename + "\n" );
-    	   }
+    	   } 
        } else if (request.equalsIgnoreCase("WRITE")) {
     	   try {
     		   fileHandler.closeInFile();
@@ -406,7 +410,6 @@ public class TFTPClient {
 
    public static void main(String args[]){
 	   TFTPClient client = new TFTPClient();
-		controller = new Controller(client);
-		controller.start();
+	   client.controller.start();
    }
 }

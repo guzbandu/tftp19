@@ -28,10 +28,11 @@ public class TFTPClientConnection extends Thread {
 	protected String outputMode;
 	protected Controller controller;
 
-	public TFTPClientConnection(String name, DatagramPacket packet, String outputMode) {
+	public TFTPClientConnection(String name, DatagramPacket packet, Controller controller) {
 		super(name); // Name the thread
 		receivePacket = packet;
-		this.outputMode = outputMode;
+		this.controller = controller;
+		this.outputMode = controller.getOutputMode();
 
 		// Construct a datagram socket and bind it to any available port
 		// on the local host machine. This socket will be used to
@@ -45,7 +46,6 @@ public class TFTPClientConnection extends Thread {
 	}
 
 	public void run() {
-		controller = TFTPServer.controller;
 		byte[] data = receivePacket.getData();
 		byte[] response = new byte[4];
 		boolean quit = false;
