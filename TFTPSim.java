@@ -228,6 +228,122 @@ public class TFTPSim{
 		       e.printStackTrace();
 		       System.exit(1);
 		   	} 
+	   }else if(controller.getTestSituation()==4 && packet.getData()[1]==controller.getAffectedOpcode()
+			   && packetCount == controller.getPacketNumber() && !networkErrorDone) {
+		   
+		   int nullIndex = 0;
+		   for (int a = 2; a < packet.getLength(); ++a) {
+			   if (packet.getData()[a] == 0) {
+				   nullIndex = a;
+				   break;
+			   }
+		   }
+		   
+		   networkErrorDone = true;
+		   byte[] illegalData = null;
+		   int len = packet.getLength();
+		   
+		   if(controller.getIllegalOperation()==1) {
+			   // invalid TFTP opcode
+			   len = packet.getLength();
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, len);
+			   illegalData[1] = 7;
+		   }
+		   else if(controller.getIllegalOperation()==2) {
+			   // invalid mode
+			   len = packet.getLength()+1;
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, nullIndex+1);
+			   illegalData[nullIndex+1] = (byte) '*';
+			   System.arraycopy(packet.getData(), nullIndex+1, illegalData, nullIndex+2, packet.getLength()-1-nullIndex);
+		   }
+		   else if(controller.getIllegalOperation()==3) {
+			   // invalid filename
+			   len = packet.getLength()+1;
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, nullIndex);
+			   illegalData[nullIndex] = (byte) '*';
+			   System.arraycopy(packet.getData(), nullIndex, illegalData, nullIndex+1, packet.getLength()-nullIndex);
+		   }
+		   else if(controller.getIllegalOperation()==4) {
+			   // invalid block number
+			   len = packet.getLength();
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, len);
+			   illegalData[3] = (byte) (illegalData[3] + 5);
+		   }
+		   else if(controller.getIllegalOperation()==5) {
+			   // no null separation between filename and mode
+			   len = packet.getLength()-1;
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, nullIndex);
+			   System.arraycopy(packet.getData(), nullIndex+1, illegalData, nullIndex, packet.getLength()-1-nullIndex);
+		   }
+		   else if(controller.getIllegalOperation()==6) {
+			   // extra null separation
+			   len = packet.getLength()+1;
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, nullIndex+1);
+			   illegalData[nullIndex+1] = 0;
+			   System.arraycopy(packet.getData(), nullIndex+1, illegalData, nullIndex+2, packet.getLength()-1-nullIndex);
+		   }
+		   else if(controller.getIllegalOperation()==7) {
+			   // no null termination
+			   len = packet.getLength()-1;
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, packet.getLength()-1);
+		   }
+		   else if(controller.getIllegalOperation()==8) {
+			   // extra null termination
+			   len = packet.getLength()+1;
+			   illegalData = new byte[len];
+			   System.arraycopy(packet.getData(), 0, illegalData, 0, packet.getLength());
+			   illegalData[packet.getLength()] = 0;
+		   }
+		   
+		   //if normal leave packet as is
+		   if (controller.getIllegalOperation()!=0) {
+			   packet = new DatagramPacket(illegalData, len, packet.getAddress(), packet.getPort());
+		   }
+		   
+		   //send packet
+		   try {
+	            socket.send(packet);
+	       } catch (IOException e) {
+	            e.printStackTrace();
+	            System.exit(1);
+	       }
+		   
+	   }else if(controller.getTestSituation()==5 && packet.getData()[1]==controller.getAffectedOpcode()
+			   && packetCount == controller.getPacketNumber() && !networkErrorDone) {
+		   
+		   networkErrorDone = true;
+		   
+		   DatagramSocket unknownTID = null;
+		   try {
+		         unknownTID = new DatagramSocket();
+		   } catch (SocketException se) {   // Can't create the socket.
+		         se.printStackTrace();
+		         System.exit(1);
+		   }
+		   
+		   //send packet using unknownTID
+		   try {
+	            unknownTID.send(packet);
+	       } catch (IOException e) {
+	            e.printStackTrace();
+	            System.exit(1);
+	       }
+		   
+		   //send packet using normal TID
+		   try {
+	            socket.send(packet);
+	       } catch (IOException e) {
+	            e.printStackTrace();
+	            System.exit(1);
+	       }
+		   
 	   }else{
 		   //send packet normally
 		   try {
