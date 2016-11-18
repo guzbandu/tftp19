@@ -15,9 +15,15 @@ public class TFTPServerReceive extends Thread {
 	@Override
 	public void run() {
 	       try {
+	    	   
 	           // Block until a datagram is received via sendReceiveSocket.
 	           sendReceiveSocket.receive(parent.receivePacket);
 	           parent.receive_success = true;
+	           //checking for error code #5
+	           if (parent.hostPort != parent.receivePacket.getPort()){
+	        	   parent.receive_success = false;
+	        	   throw new TFTPException(5,"Error Code #5: Unknown transfer ID");
+	           }
 	       } catch (SocketTimeoutException e) {
 	   			if(parent.controller.quit==true) {
 	   				sendReceiveSocket.close();

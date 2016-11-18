@@ -18,6 +18,7 @@ public class TFTPReceive extends Thread {
 	       try {
 	           // Block until a datagram is received via sendReceiveSocket.
 	           sendReceiveSocket.receive(TFTPClient.receivePacket);
+	    	   System.out.println(TFTPClient.receivePacket.getPort());
 	           TFTPClient.set_receive_success(true);
 	       } catch (SocketTimeoutException e) {
 	   			if(parent.controller.quit) {

@@ -48,6 +48,7 @@ public class TFTPClient {
       boolean last_packet = false; //Used to ensure final ack is sent
       int packetNumber = 1;
       int ackPacketNumber = 0; //the initial request returns a 00 ack
+      int hostPort;
       
       System.out.println("path:"+path);
             
