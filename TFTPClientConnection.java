@@ -27,12 +27,15 @@ public class TFTPClientConnection extends Thread {
 	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
 	protected String outputMode;
 	protected Controller controller;
+	public int hostPort;
+	public int expectedBlockNumber;
 
-	public TFTPClientConnection(String name, DatagramPacket packet, Controller controller) {
+	public TFTPClientConnection(String name, DatagramPacket packet, Controller controller, int hostPort) {
 		super(name); // Name the thread
 		receivePacket = packet;
 		this.controller = controller;
 		this.outputMode = controller.getOutputMode();
+		this.hostPort = hostPort;
 
 		// Construct a datagram socket and bind it to any available port
 		// on the local host machine. This socket will be used to
@@ -164,7 +167,6 @@ public class TFTPClientConnection extends Thread {
 		}
 		//Sending first packet, iterator starts at packet to send next
 		int i = 2;
-		
 		try {
 			sendReceiveSocket.send(sendPacket);
 		} catch (IOException e) {
@@ -190,7 +192,17 @@ public class TFTPClientConnection extends Thread {
 			while(!receive_success&&resend_count<MAX_RESEND) {
 				if(req==Request.ERROR&&resend_count>=1) break;
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
-				receiveConnection.start();
+				try{
+					receiveConnection.start();
+					}catch(TFTPException e){
+						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						try {
+							sendReceiveSocket.send(unknownIDPacket);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+			    	}
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
@@ -226,6 +238,7 @@ public class TFTPClientConnection extends Thread {
 
 		//Main loop
 		while (!quit) {
+			
 			data = new byte[516];
 			if (controller.getOutputMode().equals("verbose")){
 				System.out.println("Waiting for packet");
@@ -238,7 +251,17 @@ public class TFTPClientConnection extends Thread {
 			while(!receive_success&&resend_count<MAX_RESEND) {
 				if(req==Request.ERROR&&resend_count>=1) break;
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
-				receiveConnection.start();
+				try{
+					receiveConnection.start();
+					}catch(TFTPException e){
+						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						try {
+							sendReceiveSocket.send(unknownIDPacket);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+			    	}
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
@@ -376,7 +399,17 @@ public class TFTPClientConnection extends Thread {
 				while(!receive_success&&resend_count<MAX_RESEND) {
 					if(req==Request.ERROR&&resend_count>=1) break;
 					Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
+					try{
 					receiveConnection.start();
+					}catch(TFTPException e){
+						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						try {
+							sendReceiveSocket.send(unknownIDPacket);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+			    	}
 					try{
 						receiveConnection.join();
 					} catch (InterruptedException e) {

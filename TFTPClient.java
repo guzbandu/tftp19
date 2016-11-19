@@ -48,6 +48,7 @@ public class TFTPClient {
       int packetNumber = 1;
       int ackPacketNumber = 0; //the initial request returns a 00 ack
       boolean send = false; //Used if error on this side and we need to send the final error message
+      int hostPort;
       
       System.out.println("path:"+path);
             

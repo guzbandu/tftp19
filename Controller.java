@@ -7,10 +7,11 @@ public class Controller extends Thread{
 	public boolean quit = false;
 	private String user;
 	private String path = "";
-	private String testSituation = "2";
-	private String affectedOpcode = "3";
-	private String packetNumber = "4";
+	private String testSituation = "4";
+	private String affectedOpcode = "2";
+	private String packetNumber = "0";
 	private String delayTime = "4000";
+	private String illegalOperation = "0";
 
 	public static TFTPClient client;
 
@@ -50,6 +51,7 @@ public class Controller extends Thread{
 			System.out.println("Affected Packet Opcode:\t" + affectedOpcode);
 			System.out.println("Packet Number:\t" + packetNumber);
 			System.out.println("Delay Time:\t" + delayTime);
+			System.out.println("Illegal TFTP Operation:\t" + illegalOperation);
 		}
 		System.out.println("Path:\t" + path);
 		System.out.print("\nTo set output mode type 'verbose' or 'quiet'");
@@ -62,6 +64,7 @@ public class Controller extends Thread{
 			System.out.print("\nTo set test situation type 'situation'");
 			System.out.print("\nTo set affect packet and packet number type 'packet' or 'number'");
 			System.out.print("\nTo set delay time type 'delay'");
+			System.out.print("\nTo set illegal TFTP operation type 'operation'");
 		}
 		System.out.print("\nTo set quit type 'quit'");
 		System.out.println();
@@ -106,10 +109,11 @@ public class Controller extends Thread{
 		
 		if(user.equals("Sim")){
 			if(command.equals("situation")){
-				System.out.print("\n0:normal 1:lose packet 2:delay packet 3:duplicate packet:");
+				System.out.print("\n0:normal 1:lose packet 2:delay packet 3:duplicate packet 4:illegal TFTP operation 5:unknown TID:");
 				String situation = scanner.nextLine();
 				System.out.println();
-				if(situation.equals("0")||situation.equals("1")||situation.equals("2")||situation.equals("3")){
+				if(situation.equals("0")||situation.equals("1")||situation.equals("2")||situation.equals("3")||
+						situation.equals("4")||situation.equals("5")){
 					testSituation = situation;
 				}
 			}
@@ -132,6 +136,19 @@ public class Controller extends Thread{
 				String time = scanner.nextLine();
 				System.out.println();
 				delayTime = time;
+			}
+			if(command.equals("operation")){
+				System.out.print("\nEnter an illegal operation:"
+						+ "\n  0:normal operation \n  1:invalid TFTP opcode \n  2:invalid mode "
+						+ "\n  3:invalid filename \n  4:invalid block number \n  5:no null separation between"
+						+ " filename and mode \n  6:extra null separation between filename and mode"
+						+ "\n  7:no null termination \n  8:extra null termination\n");
+				String operation = scanner.nextLine();
+				System.out.println();
+				if(operation.equals("1")||operation.equals("2")||operation.equals("3")||operation.equals("4")||
+						operation.equals("5")||operation.equals("6")||operation.equals("7")||operation.equals("8")){
+					illegalOperation = operation;
+				}
 			}
 		}
 		
@@ -161,6 +178,9 @@ public class Controller extends Thread{
 	}
 	public int getDelayTime() {
 		return Integer.parseInt(delayTime);
+	}
+	public int getIllegalOperation() {
+		return Integer.parseInt(illegalOperation);
 	}
 	
 	public void setPath(String pth) {
