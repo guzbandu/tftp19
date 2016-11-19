@@ -16,6 +16,8 @@ public class TFTPClient {
    private int resend_count = 0; //Used to track the number of times we try to resend a packet
    private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
    private static boolean receive_success = false; //Used to track if our threads receive was successful
+   public static int hostPort = -1;
+   public static boolean hasHostPort;
    
    public synchronized static void set_receive_success(boolean success) {
 	   receive_success = success;
@@ -48,7 +50,7 @@ public class TFTPClient {
       boolean last_packet = false; //Used to ensure final ack is sent
       int packetNumber = 1;
       int ackPacketNumber = 0; //the initial request returns a 00 ack
-      int hostPort;
+      hasHostPort = false;
       
       System.out.println("path:"+path);
             
@@ -162,7 +164,17 @@ public class TFTPClient {
 	       resend_count = 0;
 	       while(!receive_success&&resend_count<MAX_RESEND) {
 	    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
-	    	   receiveConnection.start();
+	    	   try{
+					receiveConnection.start();
+				}catch(TFTPException e){
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					try {
+						sendReceiveSocket.send(unknownIDPacket);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+			    }
 	    	   try{
 	    		   receiveConnection.join();
 	    	   } catch (InterruptedException e) {
@@ -342,7 +354,17 @@ public class TFTPClient {
 			       resend_count = 0;
 			       while(!receive_success&&resend_count<MAX_RESEND) {
 			    	   Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
-			    	   receiveConnection.start();
+			    	   try{
+							receiveConnection.start();
+						}catch(TFTPException e){
+							DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+									receivePacket.getAddress(), receivePacket.getPort());
+							try {
+								sendReceiveSocket.send(unknownIDPacket);
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+					    }
 			    	   try{
 			    		   receiveConnection.join();
 			    	   } catch (InterruptedException e) {

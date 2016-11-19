@@ -36,6 +36,8 @@ public class TFTPServer{
 		byte[] data;
 
 		int len, j=0;
+		
+		int hostPort;
 
 		for(;;) { // loop forever
 
@@ -98,11 +100,12 @@ public class TFTPServer{
 				System.out.println(received);				
 			}
 
+			hostPort = receivePacket.getPort();
 
 			// Create a new client connection thread to send the DatagramPacket unless the quit command has been received
 			if(!controller.quit) {
 				Thread clientConnection = 
-					new TFTPClientConnection("Client Connection Thread", receivePacket, controller);
+					new TFTPClientConnection("Client Connection Thread", receivePacket, controller, hostPort);
 				clientConnection.start();
 				count=0;
 			}			
