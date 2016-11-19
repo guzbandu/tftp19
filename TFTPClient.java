@@ -44,10 +44,10 @@ public class TFTPClient {
              data; // reply as array of bytes
       int j, len, sendPort;
       boolean quit = false; //Used for exit condition
-      boolean full = false; //Used for the disk fills condition
       boolean last_packet = false; //Used to ensure final ack is sent
       int packetNumber = 1;
       int ackPacketNumber = 0; //the initial request returns a 00 ack
+      boolean send = false; //Used if error on this side and we need to send the final error message
       
       System.out.println("path:"+path);
             
@@ -55,7 +55,7 @@ public class TFTPClient {
       //user sends directly to port 69 on the server
       //otherwise it sends to the error simulator
       if (runMode.equals("normal")) 
-         sendPort = 69;
+         sendPort = 2069;
       else
          sendPort = 23;
          
@@ -153,7 +153,7 @@ public class TFTPClient {
     	   data = new byte[516];
 	       receivePacket = new DatagramPacket(data, data.length);
 	       
-	       if (outputMode.equals("verbose")&&!full)
+	       if (outputMode.equals("verbose"))
 	    	   System.out.println("Client: Waiting for packet.");
 	       
 	       //Receiving packet
@@ -188,9 +188,8 @@ public class TFTPClient {
 	    	   	       
 	       // Process the received datagram.
 	       len = receivePacket.getLength();
-	       if(!full)
-	    	   System.out.println("Client: Packet received:");
-	       if (outputMode.equals("verbose")&&!full){
+	       System.out.println("Client: Packet received:");
+	       if (outputMode.equals("verbose")){
 	    	   TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 	       }
     	   int packetNo = (int) ((data[2] << 8) + data[3]);
@@ -208,23 +207,21 @@ public class TFTPClient {
 	       
 	       //Don't write once full just wait until the server stops sending packets potentially allowing the server to finish properly
 	       if (packetNumber==packetNo) {
-	    	   if (request.equalsIgnoreCase("READ")&&!full){
+	    	   if (request.equalsIgnoreCase("READ")){
 	    		   try {
 	    			   fileHandler.writeFilesBytes(Arrays.copyOfRange(data, 4, len));
 	    		   } catch (TFTPException e) {
-	    			   if(!full) {
-	    				   System.out.println("The disk ran out of space while reading was in progress please wait for transmission to end.");
-	    				   full = true;
-	    			   }
+	    			   request = "ERROR";
+	   					msg = new byte[516];
+					    byte[] error = e.getErrorBytes();
+					    System.arraycopy(error, 0, msg, 0, error.length);
+					    last_packet=true; //We send this error message then we quit
+					    send=true;
+	    				System.out.println("The disk ran out of space while reading was in progress please wait for transmission to end.");
 	    		   }
-	    		   if(!full)
-	    			   System.out.println("Data length: " + len);
+	    		   System.out.println("Data length: " + len);
 	    		   if (len < 516)
 	    			   last_packet=true;
-	    	   }
-	    	   //Exit on disk full but transfer complete
-	    	   if(full&&len<516) {
-	    		   break;
 	    	   }
 	    	   packetNumber++;
 	       } else {
@@ -275,8 +272,8 @@ public class TFTPClient {
 	    	   len = 4;
 	       }
 
-	       if(!request.equalsIgnoreCase("ERROR")) {
-	    	   if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo)) {
+	       if(!request.equalsIgnoreCase("ERROR")||send) {
+	    	   if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo)||send) {
 	    		   int p; // Port we are sending to
 	    		   // Sim's sendSocket is 23, Server's is the Thread's
 	    		   if (runMode.equals("test")) p = sendPort;
@@ -291,7 +288,7 @@ public class TFTPClient {
 	    			   System.exit(1);
 	    		   }
 	    		   //Output for sending packet
-	    		   if (outputMode.equals("verbose")&&!full){
+	    		   if (outputMode.equals("verbose")){
 	    			   TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 	    			   System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
 	    			   // Form a String from the byte array, and print the string.
@@ -309,7 +306,7 @@ public class TFTPClient {
 	    			   e.printStackTrace();
 	    			   System.exit(1);
 	    		   }
-	    		   if (outputMode.equals("verbose")&&!full)
+	    		   if (outputMode.equals("verbose"))
 	    			   System.out.println("Client: Packet sent.\n");
 
 	    		   // Construct a DatagramPacket for receiving packets up
@@ -325,15 +322,14 @@ public class TFTPClient {
 	    			   quit = true;
 	    	   }
 		       
-		       if(!full)
-		    	   System.out.println();
+		       System.out.println();
 		       
 		       /* Sent final packet can break now */
 		       if(last_packet) break;
 		       
 		       /* Wait for final acknowledgement */
 		       if(quit&&request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo) {
-			       if (outputMode.equals("verbose")&&!full)
+			       if (outputMode.equals("verbose"))
 			    	   System.out.println("Client: Waiting for packet.");
 
 			       //Receiving packet
@@ -367,9 +363,8 @@ public class TFTPClient {
 			       
 			       // Process the received datagram.
 			       len = receivePacket.getLength();
-			       if(!full)
-			    	   System.out.println("Client: Packet received:");
-			       if (outputMode.equals("verbose")&&!full){
+			       System.out.println("Client: Packet received:");
+			       if (outputMode.equals("verbose")){
 			    	   TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			       }
 		    	   packetNo = (int) ((data[2] << 8) + data[3]);
