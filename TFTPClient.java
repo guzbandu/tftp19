@@ -52,6 +52,7 @@ public class TFTPClient {
 		int ackPacketNumber = 0; //the initial request returns a 00 ack
 		boolean send = false; //Used if error on this side and we need to send the final error message
 		hasHostPort = false;
+		int finalPacketCount = 0;
 
 		//If user enters "normal" as the mode
 		//user sends directly to port 69 on the server
@@ -274,7 +275,13 @@ public class TFTPClient {
 
 			//Preparing next packet
 			if(request.equalsIgnoreCase("WRITE")) {
-				if(ackPacketNumber==packetNo ){
+				if (i < fileHandler.getNumSections()) {
+					finalPacketCount = 0;
+				}
+				if (ackPacketNumber==packetNo && i>=fileHandler.getNumSections())	{
+					finalPacketCount++;
+				}
+				if(ackPacketNumber==packetNo&&finalPacketCount<=1){
 					int length = 512;
 					if (i == fileHandler.getNumSections())
 						length = fileHandler.getFileLength() - ((fileHandler.getNumSections()-1) * 512);
@@ -310,7 +317,7 @@ public class TFTPClient {
 			}
 
 			if(!request.equalsIgnoreCase("ERROR")||send) {
-				if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo)||send) {
+				if(request.equalsIgnoreCase("READ")||(request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo&&finalPacketCount<=1)||send) {
 					int p; // Port we are sending to
 					// Sim's sendSocket is 23, Server's is the Thread's
 					if (runMode.equals("test")) p = sendPort;
@@ -327,12 +334,11 @@ public class TFTPClient {
 					//Output for sending packet
 					if (outputMode.equals("verbose")){
 						TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-						System.out.println("Byte Packet No.: " + msg[2] + " " + msg[3]);
 						// Form a String from the byte array, and print the string.
 						String sending = new String(msg,0,len);
 						System.out.println(sending);
 					}
-					unsignedByte = (byte) ((data[2] << 8) + data[3]);
+					unsignedByte = (byte) ((msg[2] << 8) + msg[3]);
 					packetNo = (int) (unsignedByte & 0xff);
 					System.out.println("Packet No.: " + packetNo);
 
@@ -353,10 +359,10 @@ public class TFTPClient {
 					i++;
 
 					ackPacketNumber++;
-				} else if (request.equalsIgnoreCase("WRITE")&&ackPacketNumber!=packetNo&&!quit) {
+				} else if (request.equalsIgnoreCase("WRITE")&&ackPacketNumber!=packetNo) {
 					System.out.println("Ignoring duplicate ack.");
 					System.out.println("");
-					if(i >= fileHandler.getNumSections() )
+					if(i >= fileHandler.getNumSections() && finalPacketCount>=1)
 						quit = true;
 				}
 
@@ -366,7 +372,7 @@ public class TFTPClient {
 				if(last_packet) break;
 
 				/* Wait for final acknowledgement */
-				if(quit&&request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo) {
+				if(quit&&request.equalsIgnoreCase("WRITE")) {
 					if (outputMode.equals("verbose"))
 						System.out.println("Client: Waiting for packet.");
 
