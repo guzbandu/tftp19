@@ -24,7 +24,7 @@ public class TFTPSim{
 	protected boolean receive_success = false;
 	private boolean initialConnection = true;
 	private int resend_count = 0; //Used to track the number of times we try to resend a packet
-	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
+	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up 
 	private int clientPort=0, serverPort=69;
 
 	public TFTPSim()

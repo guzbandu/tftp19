@@ -14,11 +14,12 @@ public class TFTPClient {
 	private DatagramSocket sendReceiveSocket;
 	public Controller controller;
 	private int resend_count = 0; //Used to track the number of times we try to resend a packet
-	private final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
+	private final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO change this once finished testing
 	private boolean receive_success = false; //Used to track if our threads receive was successful
 	protected int error_number = 0;
 	protected int hostPort = -1;
 	protected boolean hasHostPort;
+	private int oldPacketNo;
 
 	public synchronized void set_receive_success(boolean success) {
 		receive_success = success;
@@ -179,7 +180,8 @@ public class TFTPClient {
 					System.out.println("Server: Sending packet:");
 					if (outputMode.equals("verbose")){
 						TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
-					}	
+					}
+					System.out.println();
 					try {
 						sendReceiveSocket.send(unknownIDPacket);
 					} catch (IOException e1) {
@@ -193,6 +195,7 @@ public class TFTPClient {
 					if (outputMode.equals("verbose")){
 						TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
 					}
+					System.out.println();
 					try {
 						sendReceiveSocket.send(unknownIDPacket);
 					} catch (IOException e1) {
@@ -230,10 +233,11 @@ public class TFTPClient {
 			byte unsignedByte = (byte) ((data[2] << 8) + data[3]);
 			int packetNo = (int) (unsignedByte & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
-			if(packetNo==0) { //The counter has rolled over
-				packetNumber = 0;
-				ackPacketNumber = 0;
+			if(packetNo==0&&oldPacketNo>packetNo) { //The counter has rolled over
+				packetNumber = 0; 
+				ackPacketNumber = 0; 
 			}
+			oldPacketNo = packetNo;
 
 			//Checking for error packets
 			if(5 == (int)((data[0] << 8) + data[1])) {
@@ -396,7 +400,8 @@ public class TFTPClient {
 							System.out.println("Server: Sending packet:");
 							if (outputMode.equals("verbose")){
 								TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
-							}	
+							}
+							System.out.println();
 							try {
 								sendReceiveSocket.send(unknownIDPacket);
 							} catch (IOException e1) {
@@ -410,6 +415,7 @@ public class TFTPClient {
 							if (outputMode.equals("verbose")){
 								TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
 							}
+							System.out.println();
 							try {
 								sendReceiveSocket.send(unknownIDPacket);
 							} catch (IOException e1) {
@@ -447,10 +453,11 @@ public class TFTPClient {
 					unsignedByte = (byte) ((data[2] << 8) + data[3]);
 					packetNo = (int) (unsignedByte & 0xff);
 					System.out.println("Packet No.: " + packetNo + "\n");
-					if(packetNo==0) { //The counter has rolled over
+					if(packetNo==0&&oldPacketNo>packetNo) { //The counter has rolled over
 						packetNumber = 0;
 						ackPacketNumber = 0;
 					}
+					oldPacketNo = packetNo;
 
 					if(request.equalsIgnoreCase("WRITE")) {
 						if(ackPacketNumber==packetNo) {
