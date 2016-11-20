@@ -25,6 +25,7 @@ public class TFTPSim{
    private boolean initialConnection = true;
 	private int resend_count = 0; //Used to track the number of times we try to resend a packet
 	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
+	private int clientPort=0, serverPort=69;
    
    public TFTPSim()
    {
@@ -49,7 +50,9 @@ public class TFTPSim{
    {
 	   byte[] data;
 
-	   int clientPort=0, len, serverPort=69;
+	   //int clientPort=0, len, serverPort=69;
+	   int len;
+
 
 	   packetCount = 0; //We start by dealing with the request packet and the next packet is the "first" packet
 
@@ -305,7 +308,7 @@ public class TFTPSim{
 		   
 		   //if normal leave packet as is
 		   if (controller.getIllegalOperation()!=0) {
-			   packet = new DatagramPacket(illegalData, len, packet.getAddress(), packet.getPort());
+			  packet = new DatagramPacket(illegalData, len, packet.getAddress(), packet.getPort()); 
 		   }
 		   
 		   //send packet
