@@ -57,7 +57,7 @@ public class TFTPClient {
 		//user sends directly to port 69 on the server
 		//otherwise it sends to the error simulator
 		if (runMode.equals("normal")) 
-			sendPort = 69;
+			sendPort = 2069;
 		else
 			sendPort = 23;
 
@@ -166,6 +166,7 @@ public class TFTPClient {
 				try{
 					receiveConnection.start();
 				}catch(TFTPException e){
+					request = "ERROR";
 					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 							receivePacket.getAddress(), receivePacket.getPort());
 					try {
@@ -293,6 +294,8 @@ public class TFTPClient {
 					// Sim's sendSocket is 23, Server's is the Thread's
 					if (runMode.equals("test")) p = sendPort;
 					else p = receivePacket.getPort();
+					//TODO
+					System.out.println("Outgoing Port:"+p);
 
 					//Sending packet
 					try {
@@ -356,6 +359,7 @@ public class TFTPClient {
 						try{
 							receiveConnection.start();
 						}catch(TFTPException e){
+							request = "ERROR";
 							DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 									receivePacket.getAddress(), receivePacket.getPort());
 							try {

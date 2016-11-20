@@ -96,7 +96,7 @@ public class TFTPClientConnection extends Thread {
 		}
 
 		if(k!=len-1) req=Request.ERROR; // other stuff at end of packet     
-		
+
 		// Send Error Packet for Error Code #4
 		if (req==Request.ERROR) {
 			TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
@@ -207,6 +207,7 @@ public class TFTPClientConnection extends Thread {
 				try{
 					receiveConnection.start();
 				}catch(TFTPException e){
+					req=Request.ERROR;
 					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 							receivePacket.getAddress(), receivePacket.getPort());
 					try {
@@ -247,7 +248,6 @@ public class TFTPClientConnection extends Thread {
 			byte unsignedByte = (byte) ((data[2] << 8) + data[3]);
 			int packetNo = (int) (unsignedByte & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
-
 		}
 
 		//Main loop
@@ -268,6 +268,7 @@ public class TFTPClientConnection extends Thread {
 				try{
 					receiveConnection.start();
 				}catch(TFTPException e){
+					req=Request.ERROR;
 					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 							receivePacket.getAddress(), receivePacket.getPort());
 					try {
@@ -433,6 +434,7 @@ public class TFTPClientConnection extends Thread {
 					try{
 						receiveConnection.start();
 					}catch(TFTPException e){
+						req=Request.ERROR;
 						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 								receivePacket.getAddress(), receivePacket.getPort());
 						try {
