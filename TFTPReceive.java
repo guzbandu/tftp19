@@ -26,7 +26,6 @@ public class TFTPReceive extends Thread {
 	           }
 	           //checking for error code #5
 	           if (TFTPClient.hostPort != TFTPClient.receivePacket.getPort()){
-	        	   TFTPClient.set_receive_success(false);
 	        	   throw new TFTPException(5,"Error Code #5: Unknown transfer ID");
 	           }
 	           //checking for error code #4
@@ -55,15 +54,15 @@ public class TFTPReceive extends Thread {
 		
 			if (data[0]!=0) illegalTFTP = true; // bad
    		else if (data[1]>5) illegalTFTP = true; //illegal opcode
-   		else if (data[1]<1) illegalTFTP = true; 
+   		else if (data[1]<1) illegalTFTP = true;
 
    		if (!illegalTFTP) { // check for filename
    			// search for next all 0 byte
    			for(j=2;j<len;j++) {
    				if (data[j] == 0) break;
    			}
-   			if (j==len) illegalTFTP = true; // didn't find a 0 byte
-   			if (j==2) illegalTFTP = true; // filename is 0 bytes long
+   			if (j==len) illegalTFTP = true;// didn't find a 0 byte
+   			if (j==2) illegalTFTP = true;// filename is 0 bytes long
    		}
 
    		if(!illegalTFTP) { // check for mode
@@ -71,8 +70,8 @@ public class TFTPReceive extends Thread {
    			for(k=j+1;k<len;k++) { 
    				if (data[k] == 0) break;
    			}
-   			if (k==len) illegalTFTP = true; // didn't find a 0 byte
-   			if (k==j+1) illegalTFTP = true; // mode is 0 bytes long
+   			//if (k==len) {illegalTFTP = true; System.out.println("FFFFFFFF");}// didn't find a 0 byte
+   			if (k==j+1) illegalTFTP = true;// mode is 0 bytes long
    		}
 
    		if(k!=len-1) illegalTFTP = true; // other stuff at end of packet     

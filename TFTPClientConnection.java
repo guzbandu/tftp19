@@ -207,6 +207,7 @@ public class TFTPClientConnection extends Thread {
 				try{
 					receiveConnection.start();
 					}catch(TFTPException e){
+						req=Request.ERROR;
 						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 								receivePacket.getAddress(), receivePacket.getPort());
 						try {
@@ -266,6 +267,7 @@ public class TFTPClientConnection extends Thread {
 				try{
 					receiveConnection.start();
 				}catch(TFTPException e){
+					req=Request.ERROR;
 					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 							receivePacket.getAddress(), receivePacket.getPort());
 					try {
@@ -414,6 +416,7 @@ public class TFTPClientConnection extends Thread {
 					try{
 					receiveConnection.start();
 					}catch(TFTPException e){
+						req=Request.ERROR;
 						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 								receivePacket.getAddress(), receivePacket.getPort());
 						try {

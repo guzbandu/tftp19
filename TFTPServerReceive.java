@@ -22,7 +22,6 @@ public class TFTPServerReceive extends Thread {
 	           parent.receive_success = true;
 	           //checking for error code #5
 	           if (parent.hostPort != parent.receivePacket.getPort()){
-	        	   parent.receive_success = false;
 	        	   throw new TFTPException(5,"Error Code #5: Unknown transfer ID");
 	           }
 	           //checking for error code #4
