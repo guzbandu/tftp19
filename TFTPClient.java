@@ -17,7 +17,8 @@ public class TFTPClient {
 	private int resend_count = 0; //Used to track the number of times we try to resend a packet
 	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
 	private static boolean receive_success = false; //Used to track if our threads receive was successful
-	DataInputStream dis = null;
+	public static int hostPort = -1;
+	public static boolean hasHostPort;
 
 	public synchronized static void set_receive_success(boolean success) {
 		receive_success = success;
@@ -50,9 +51,7 @@ public class TFTPClient {
 		int packetNumber = 1;
 		int ackPacketNumber = 0; //the initial request returns a 00 ack
 		boolean send = false; //Used if error on this side and we need to send the final error message
-		int hostPort;
-
-		System.out.println("path:"+path);
+		hasHostPort = false;
 
 		//If user enters "normal" as the mode
 		//user sends directly to port 69 on the server
@@ -164,7 +163,17 @@ public class TFTPClient {
 			resend_count = 0;
 			while(!receive_success&&resend_count<MAX_RESEND) {
 				Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
-				receiveConnection.start();
+				try{
+					receiveConnection.start();
+				}catch(TFTPException e){
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					try {
+						sendReceiveSocket.send(unknownIDPacket);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
@@ -202,7 +211,7 @@ public class TFTPClient {
 				packetNumber = 0;
 				ackPacketNumber = 0;
 			}
-			
+
 			//Checking for error packets
 			if(5 == (int)((data[0] << 8) + data[1])) {
 				request = "ERROR";
@@ -213,7 +222,6 @@ public class TFTPClient {
 				quit = true;
 			}
 
-			//Don't write once full just wait until the server stops sending packets potentially allowing the server to finish properly
 			if (packetNumber==packetNo) {
 				if (request.equalsIgnoreCase("READ")){
 					try {
@@ -345,7 +353,17 @@ public class TFTPClient {
 					resend_count = 0;
 					while(!receive_success&&resend_count<MAX_RESEND) {
 						Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
-						receiveConnection.start();
+						try{
+							receiveConnection.start();
+						}catch(TFTPException e){
+							DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+									receivePacket.getAddress(), receivePacket.getPort());
+							try {
+								sendReceiveSocket.send(unknownIDPacket);
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+						}
 						try{
 							receiveConnection.join();
 						} catch (InterruptedException e) {

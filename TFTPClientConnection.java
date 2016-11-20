@@ -95,7 +95,19 @@ public class TFTPClientConnection extends Thread {
 			mode = new String(data,j,k-j-1);
 		}
 
-		if(k!=len-1) req=Request.ERROR; // other stuff at end of packet        
+		if(k!=len-1) req=Request.ERROR; // other stuff at end of packet     
+		
+		// Send Error Packet for Error Code #4
+		if (req==Request.ERROR) {
+			TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+			sendPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+					receivePacket.getAddress(), receivePacket.getPort());
+			try {
+				sendReceiveSocket.send(sendPacket);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
 
 		//Create instance to handle file operations
 		TFTPReadWrite fileHandler;
@@ -264,6 +276,7 @@ public class TFTPClientConnection extends Thread {
 						e1.printStackTrace();
 					}
 				}
+
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
