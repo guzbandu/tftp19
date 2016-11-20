@@ -60,6 +60,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("READ", "./Server/testReadOne.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File outFile = new File("./Client/testReadOne.txt");
 		File inFile = new File("./Server/testReadOne.txt");
 		byte[] outFileB = new byte[0];
@@ -78,6 +83,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("READ", "./Server/testReadLess.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File outFile = new File("./Client/testReadLess.txt");
 		File inFile = new File("./Server/testReadLess.txt");
 		byte[] outFileB = new byte[0];
@@ -96,6 +106,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("READ", "./Server/testReadExact.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File outFile = new File("./Client/testReadExact.txt");
 		File inFile = new File("./Server/testReadExact.txt");
 		byte[] outFileB = new byte[0];
@@ -114,6 +129,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("READ", "./Server/testReadMore.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File outFile = new File("./Client/testReadMore.txt");
 		File inFile = new File("./Server/testReadMore.txt");
 		byte[] outFileB = new byte[0];
@@ -132,6 +152,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("READ", "./Server/testReadMulti.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File outFile = new File("./Client/testReadMulti.txt");
 		File inFile = new File("./Server/testReadMulti.txt");
 		byte[] outFileB = new byte[0];
@@ -150,6 +175,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("WRITE", "./Client/testWriteOne.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File inFile = new File("./Server/testWriteOne.txt");
 		File outFile = new File("./Client/testWriteOne.txt");
 		byte[] outFileB = new byte[0];
@@ -168,6 +198,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("WRITE", "./Client/testWriteLess.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File inFile = new File("./Server/testWriteLess.txt");
 		File outFile = new File("./Client/testWriteLess.txt");
 		byte[] outFileB = new byte[0];
@@ -186,6 +221,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("WRITE", "./Client/testWriteExact.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File inFile = new File("./Server/testWriteExact.txt");
 		File outFile = new File("./Client/testWriteExact.txt");
 		byte[] outFileB = new byte[0];
@@ -204,6 +244,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("WRITE", "./Client/testWriteMore.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File inFile = new File("./Server/testWriteMore.txt");
 		File outFile = new File("./Client/testWriteMore.txt");
 		byte[] outFileB = new byte[0];
@@ -222,6 +267,11 @@ public class TFTPTestSuite {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
 		client.sendAndReceive("WRITE", "./Client/testWriteMulti.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		File inFile = new File("./Server/testWriteMulti.txt");
 		File outFile = new File("./Client/testWriteMulti.txt");
 		byte[] outFileB = new byte[0];
