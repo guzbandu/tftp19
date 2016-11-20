@@ -22,24 +22,11 @@ public class TFTPReceive extends Thread {
 			//Get Host Port
 			if (!parent.hasHostPort){
 				parent.hasHostPort = true;
-				if(parent.controller.getRunMode()=="normal") {
-					parent.hostPort = parent.receivePacket.getPort();
-				} else {
-					parent.hostPort = (parent.receivePacket.getPort()-1); //Avoid an off by one error on the first packet
-				}
+				parent.hostPort = parent.receivePacket.getPort();
 			}
 			//checking for error code #5
-			if(parent.controller.getRunMode()=="normal") {
-				if (parent.hostPort != parent.receivePacket.getPort()){
-					parent.error_number=5;
-				}
-			} else { //In test mode the server port keeps incrementing by one
-				if ((parent.hostPort+1) != parent.receivePacket.getPort()){
-					parent.error_number=5;
-					parent.hostPort = parent.receivePacket.getPort(); //keep setting it to the new port so it is always off by one
-				} else {
-					parent.hostPort = parent.receivePacket.getPort(); //keep setting it to the new port so it is always off by one
-				}
+			if (parent.hostPort != parent.receivePacket.getPort()){
+				parent.error_number=5;
 			}
 			//checking for error code #4
 			if (checkIllegalTFTP(parent.receivePacket)){
