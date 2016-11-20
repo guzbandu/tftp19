@@ -32,7 +32,7 @@ public class TFTPSim{
          // Construct a datagram socket and bind it to port 23
          // on the local host machine. This socket will be used to
          // receive UDP Datagram packets from clients.
-         receiveSocket = new DatagramSocket(23);
+         receiveSocket = new DatagramSocket(2023);
          receiveSocket.setSoTimeout(20);
          // Construct a datagram socket and bind it to any available
          // port on the local host machine. This socket will be used to
@@ -49,7 +49,7 @@ public class TFTPSim{
    {
 	   byte[] data;
 
-	   int clientPort=0, len, serverPort=69;
+	   int clientPort=0, len, serverPort=2069;
 
 	   packetCount = 0; //We start by dealing with the request packet and the next packet is the "first" packet
 
@@ -88,13 +88,13 @@ public class TFTPSim{
 			   if(receivePacket.getData()[1] == 1) {
 				   packetCount = 1; //Data comes back right away
 				   networkErrorDone = false;
-				   serverPort = 69;
+				   serverPort = 2069;
 				   opCode = 1;
 				   initialConnection = true;
 			   } else if (receivePacket.getData()[1]==2) {
 				   packetCount = 0; //There is a 0 ack
 				   networkErrorDone = false;
-				   serverPort = 69;
+				   serverPort = 2069;
 				   opCode = 2;
 				   initialConnection = true;
 			   } else {
@@ -120,6 +120,7 @@ public class TFTPSim{
 		   data = new byte[516];
 		   receivePacket = new DatagramPacket(data, data.length);
 
+		   //Receive packet from server
 		   receive_success=false; //Start loop not having received anything
 		   resend_count = 0;
 		   while(!receive_success&&resend_count<MAX_RESEND) {

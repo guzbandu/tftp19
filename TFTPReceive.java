@@ -17,28 +17,28 @@ public class TFTPReceive extends Thread {
 	public void run() {
 		try {
 			// Block until a datagram is received via sendReceiveSocket.
-			sendReceiveSocket.receive(TFTPClient.receivePacket);
-			TFTPClient.set_receive_success(true);
+			sendReceiveSocket.receive(parent.receivePacket);
+			parent.set_receive_success(true);
 			//Get Host Port
-			if (!TFTPClient.hasHostPort){
-				TFTPClient.hasHostPort = true;
-				TFTPClient.hostPort = TFTPClient.receivePacket.getPort();
+			if (!parent.hasHostPort){
+				parent.hasHostPort = true;
+				parent.hostPort = parent.receivePacket.getPort();
 			}
 			//checking for error code #5
-			if (TFTPClient.hostPort != TFTPClient.receivePacket.getPort()){
-				throw new TFTPException(5,"Error Code #5: Unknown transfer ID");
+			if (parent.hostPort != parent.receivePacket.getPort()){
+				parent.error_number=5;
 			}
 			//checking for error code #4
-			if (checkIllegalTFTP(TFTPClient.receivePacket)){
-				TFTPClient.set_receive_success(false);
-				throw new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+			if (checkIllegalTFTP(parent.receivePacket)){
+				parent.set_receive_success(false);
+				parent.error_number=4;
 			}
 		} catch (SocketTimeoutException e) {
 			if(parent.controller.quit) {
 				sendReceiveSocket.close();
 				System.exit(0);
 			} else {
-				TFTPClient.set_receive_success(false);
+				parent.set_receive_success(false);
 			}
 		} catch(IOException e) {
 			e.printStackTrace();

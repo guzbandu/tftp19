@@ -22,12 +22,12 @@ public class TFTPServerReceive extends Thread {
 			parent.receive_success = true;
 			//checking for error code #5
 			if (parent.hostPort != parent.receivePacket.getPort()){
-				throw new TFTPException(5,"Error Code #5: Unknown transfer ID");
+				parent.error_number=5;
 			}
 			//checking for error code #4
 			if (checkIllegalTFTP(parent.receivePacket)){
 				parent.receive_success = false;
-				throw new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+				parent.error_number=4;
 			}
 
 		} catch (SocketTimeoutException e) {

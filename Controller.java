@@ -2,16 +2,16 @@ import java.util.Scanner;
 
 public class Controller extends Thread{
 	private String outputMode = "verbose";//"quiet";
-	private String runMode = "normal";//"normal";
+	private String runMode = "test";//"normal";
 	private String transferMode = "OCTET";
 	public boolean quit = false;
 	private String user;
 	private String path = "";
 	private String testSituation = "4";
-	private String affectedOpcode = "2";
-	private String packetNumber = "0";
+	private String affectedOpcode = "3";
+	private String packetNumber = "1";
 	private String delayTime = "4000";
-	private String illegalOperation = "0";
+	private String illegalOperation = "1";
 
 	public static TFTPClient client;
 

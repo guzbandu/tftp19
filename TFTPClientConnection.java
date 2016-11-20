@@ -23,6 +23,7 @@ public class TFTPClientConnection extends Thread {
 	private DatagramPacket sendPacket;
 	public DatagramPacket receivePacket;
 	public boolean receive_success = false; //Used to track if our receive thread was successful
+	protected int error_number = 0;
 	private int resend_count = 0; //Used to track the number of times we try to resend a packet
 	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up TODO drop this once finished testing
 	protected String outputMode;
@@ -102,11 +103,7 @@ public class TFTPClientConnection extends Thread {
 			TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
 			sendPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 					receivePacket.getAddress(), receivePacket.getPort());
-			try {
-				sendReceiveSocket.send(sendPacket);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			quit = true;
 		}
 
 		//Create instance to handle file operations
@@ -122,7 +119,7 @@ public class TFTPClientConnection extends Thread {
 				fileHandler = null;
 				quit = true;
 			}
-		} else {
+		} else if (req==Request.READ) {
 			try{
 				fileHandler = new TFTPReadWrite(filename, "READ", path, "Client Connection");
 			}catch(TFTPException e){
@@ -138,6 +135,8 @@ public class TFTPClientConnection extends Thread {
 				fileHandler = null;
 				quit = true;
 			}
+		} else { //Error Code #4
+			fileHandler = null;
 		}
 
 		if (req==Request.READ) { // for Read it's 0301
@@ -170,8 +169,10 @@ public class TFTPClientConnection extends Thread {
 		//     so we extract the port that the client used to send us the
 		//     datagram, and use that as the destination port for the TFTP
 		//     packet.
-		sendPacket = new DatagramPacket(response, response.length,
-				receivePacket.getAddress(), receivePacket.getPort());
+		if(!(req==Request.ERROR)) {
+			sendPacket = new DatagramPacket(response, response.length,
+					receivePacket.getAddress(), receivePacket.getPort());
+		}
 		//Output packet to send
 		System.out.println("Server: Sending packet:");
 		if (outputMode.equals("verbose")){
@@ -208,12 +209,14 @@ public class TFTPClientConnection extends Thread {
 					receiveConnection.start();
 				}catch(TFTPException e){
 					req=Request.ERROR;
-					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-							receivePacket.getAddress(), receivePacket.getPort());
-					try {
-						sendReceiveSocket.send(unknownIDPacket);
-					} catch (IOException e1) {
-						e1.printStackTrace();
+					if(e.getErrorCode()==5) { //send a message to unknown TID
+						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						try {
+							sendReceiveSocket.send(unknownIDPacket);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
 					}
 				}
 				try{
@@ -262,40 +265,60 @@ public class TFTPClientConnection extends Thread {
 			//Receiving packet from client
 			receive_success=false; //Start loop not having received anything
 			resend_count = 0;
+			error_number = 0;
 			while(!receive_success&&resend_count<MAX_RESEND) {
 				if(req==Request.ERROR&&resend_count>=1) break;
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
-				try{
-					receiveConnection.start();
-				}catch(TFTPException e){
-					req=Request.ERROR;
-					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-							receivePacket.getAddress(), receivePacket.getPort());
-					try {
-						sendReceiveSocket.send(unknownIDPacket);
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				}
-
+				receiveConnection.start();
+				//TODO				
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				if(!receive_success) {
-					//we did not receive a packet before timing out, re-send our packet
-					//Sending request packet
+				if(error_number==5) { //send a message to unknown TID and continue normal flow
+					TFTPException e = new TFTPException(5,"Error Code #5: Unknown transfer ID");
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					System.out.println("Server: Sending packet:");
+					if (outputMode.equals("verbose")){
+						TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
+					}	
 					try {
-						sendReceiveSocket.send(sendPacket);
-					} catch (IOException e) {
-						e.printStackTrace();
-						System.exit(1);
+						sendReceiveSocket.send(unknownIDPacket);
+					} catch (IOException e1) {
+						e1.printStackTrace();
 					}
-					if (controller.getOutputMode().equals("verbose"))
-						System.out.println("Client: Re-sending packet.\n");
+				} else if (error_number==4) { //send an error message and terminate flow
+					TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					System.out.println("Server: Sending packet:");
+					if (outputMode.equals("verbose")){
+						TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
+					}
+					try {
+						sendReceiveSocket.send(unknownIDPacket);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					break;
 				}
-				resend_count++;
+				if(error_number==0||error_number==5) {
+					if(!receive_success) {
+						//we did not receive a packet before timing out, re-send our packet
+						//Sending request packet
+						try {
+							sendReceiveSocket.send(sendPacket);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+						if (controller.getOutputMode().equals("verbose"))
+							System.out.println("Client: Re-sending packet.\n");
+					}
+					resend_count++;
+				}
 			}
 
 			if(!receive_success) break;
@@ -428,41 +451,62 @@ public class TFTPClientConnection extends Thread {
 				//Receiving packet from client
 				receive_success=false; //Start loop not having received anything
 				resend_count = 0;
+				error_number = 0;
+				//TODO
 				while(!receive_success&&resend_count<MAX_RESEND) {
 					if(req==Request.ERROR&&resend_count>=1) break;
 					Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
-					try{
-						receiveConnection.start();
-					}catch(TFTPException e){
-						req=Request.ERROR;
-						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-								receivePacket.getAddress(), receivePacket.getPort());
-						try {
-							sendReceiveSocket.send(unknownIDPacket);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					}
+					receiveConnection.start();
 					try{
 						receiveConnection.join();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					if(!receive_success) {
-						//we did not receive a packet before timing out, re-send our packet
-						//Sending request packet
-						if(!(ackPacketNumber==packetNo&&finalPacketCount>1)) {
-							try {
-								sendReceiveSocket.send(sendPacket);
-							} catch (IOException e) {
-								e.printStackTrace();
-								System.exit(1);
-							}
-							if (controller.getOutputMode().equals("verbose"))
-								System.out.println("Server: Re-sending packet.\n");
+					if(error_number==5) { //send a message to unknown TID and continue normal flow
+						TFTPException e = new TFTPException(5,"Error Code #5: Unknown transfer ID");
+						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						System.out.println("Server: Sending packet:");
+						if (outputMode.equals("verbose")){
+							TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
+						}	
+						try {
+							sendReceiveSocket.send(unknownIDPacket);
+						} catch (IOException e1) {
+							e1.printStackTrace();
 						}
+					} else if (error_number==4) { //send an error message and terminate flow
+						TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						System.out.println("Server: Sending packet:");
+						if (outputMode.equals("verbose")){
+							TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
+						}
+						try {
+							sendReceiveSocket.send(unknownIDPacket);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+						break;
 					}
-					resend_count++;
+					if(error_number==0||error_number==5) {
+						if(!receive_success) {
+							//we did not receive a packet before timing out, re-send our packet
+							//Sending request packet
+							if(!(ackPacketNumber==packetNo&&finalPacketCount>1)) {
+								try {
+									sendReceiveSocket.send(sendPacket);
+								} catch (IOException e) {
+									e.printStackTrace();
+									System.exit(1);
+								}
+								if (controller.getOutputMode().equals("verbose"))
+									System.out.println("Server: Re-sending packet.\n");
+							}
+						}
+						resend_count++;
+					}
 				}
 
 				if(!receive_success) break;
