@@ -269,8 +269,7 @@ public class TFTPClientConnection extends Thread {
 			while(!receive_success&&resend_count<MAX_RESEND) {
 				if(req==Request.ERROR&&resend_count>=1) break;
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
-				receiveConnection.start();
-				//TODO				
+				receiveConnection.start();				
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
@@ -452,7 +451,6 @@ public class TFTPClientConnection extends Thread {
 				receive_success=false; //Start loop not having received anything
 				resend_count = 0;
 				error_number = 0;
-				//TODO
 				while(!receive_success&&resend_count<MAX_RESEND) {
 					if(req==Request.ERROR&&resend_count>=1) break;
 					Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);

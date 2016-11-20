@@ -162,7 +162,6 @@ public class TFTPClient {
 			receive_success=false; //Start loop not having received anything
 			resend_count = 0;
 			error_number = 0;
-			//TODO
 			while(!receive_success&&resend_count<MAX_RESEND) {
 				if(request.equalsIgnoreCase("ERROR")&&resend_count>=1) break;
 				Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
@@ -375,7 +374,6 @@ public class TFTPClient {
 					receive_success=false; //Start loop not having received anything
 					resend_count = 0;
 					error_number = 0;
-					//TODO
 					while(!receive_success&&resend_count<MAX_RESEND) {
 						if(request.equalsIgnoreCase("ERROR")&&resend_count>=1) break;
 						Thread receiveConnection = new TFTPReceive(sendReceiveSocket, this);
