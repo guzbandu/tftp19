@@ -194,15 +194,15 @@ public class TFTPClientConnection extends Thread {
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
 				try{
 					receiveConnection.start();
-					}catch(TFTPException e){
-						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-								receivePacket.getAddress(), receivePacket.getPort());
-						try {
-							sendReceiveSocket.send(unknownIDPacket);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-			    	}
+				}catch(TFTPException e){
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					try {
+						sendReceiveSocket.send(unknownIDPacket);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
@@ -222,23 +222,25 @@ public class TFTPClientConnection extends Thread {
 				}
 				resend_count++;
 			}
-			
+
 			if(!receive_success) return;
-			
+
 			// Process the received datagram.
 			len = receivePacket.getLength();
 			System.out.println("Server: Packet received:");
 			if (controller.getOutputMode().equals("verbose")){
 				TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			}
-			int packetNo = (int) ((data[2] << 8) + data[3]);
+			//Make the byte count in the range from 0 to 255 instead of -128 to 127
+			byte unsignedByte = (byte) ((data[2] << 8) + data[3]);
+			int packetNo = (int) (unsignedByte & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
 
 		}
 
 		//Main loop
 		while (!quit) {
-			
+
 			data = new byte[516];
 			if (controller.getOutputMode().equals("verbose")){
 				System.out.println("Waiting for packet");
@@ -253,15 +255,15 @@ public class TFTPClientConnection extends Thread {
 				Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
 				try{
 					receiveConnection.start();
-					}catch(TFTPException e){
-						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-								receivePacket.getAddress(), receivePacket.getPort());
-						try {
-							sendReceiveSocket.send(unknownIDPacket);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-			    	}
+				}catch(TFTPException e){
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					try {
+						sendReceiveSocket.send(unknownIDPacket);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
 				try{
 					receiveConnection.join();
 				} catch (InterruptedException e) {
@@ -281,17 +283,33 @@ public class TFTPClientConnection extends Thread {
 				}
 				resend_count++;
 			}
-			
+
 			if(!receive_success) break;
-			
+
 			// Process the received datagram.
 			len = receivePacket.getLength();
 			System.out.println("Server: Packet received:");
 			if (controller.getOutputMode().equals("verbose")){
 				TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			}
-			int packetNo = (int) ((data[2] << 8) + data[3]);
+			//Make the byte count in the range from 0 to 255 instead of -128 to 127
+			byte unsignedByte = (byte) ((data[2] << 8) + data[3]);
+			int packetNo = (int) (unsignedByte & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
+			if(packetNo==0) { //The counter has rolled over
+				packetNumber = 0;
+				ackPacketNumber = 0;
+			}
+
+			//Checking for error packets
+			if(5 == (int)((data[0] << 8) + data[1])) {
+				req = Request.ERROR;
+				System.out.println("Error from the client:");
+				String message = new String(data);
+				message = message.substring(4,message.length());
+				System.out.println(message+"\n");
+				break; //Stop transfer error from client received
+			}
 
 			//Checking if received last packet
 			if ((req == Request.WRITE) && len < 516) { 
@@ -387,7 +405,7 @@ public class TFTPClientConnection extends Thread {
 					quit = true;
 				}
 			}
-			
+
 			if(quit&&req==Request.READ) {
 				if (controller.getOutputMode().equals("verbose")){
 				}
@@ -400,7 +418,7 @@ public class TFTPClientConnection extends Thread {
 					if(req==Request.ERROR&&resend_count>=1) break;
 					Thread receiveConnection = new TFTPServerReceive(sendReceiveSocket,this);
 					try{
-					receiveConnection.start();
+						receiveConnection.start();
 					}catch(TFTPException e){
 						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 								receivePacket.getAddress(), receivePacket.getPort());
@@ -409,7 +427,7 @@ public class TFTPClientConnection extends Thread {
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-			    	}
+					}
 					try{
 						receiveConnection.join();
 					} catch (InterruptedException e) {
@@ -431,18 +449,24 @@ public class TFTPClientConnection extends Thread {
 					}
 					resend_count++;
 				}
-				
+
 				if(!receive_success) break;
-				
+
 				// Process the received datagram.
 				len = receivePacket.getLength();
 				System.out.println("Server: Packet received:");
 				if (controller.getOutputMode().equals("verbose")){
 					TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 				}
-				packetNo = (int) ((data[2] << 8) + data[3]);
+				//Make the byte count in the range from 0 to 255 instead of -128 to 127
+				unsignedByte = (byte) ((data[2] << 8) + data[3]);
+				packetNo = (int) (unsignedByte & 0xff);
 				System.out.println("Packet No.: " + packetNo + "\n");
-				
+				if(packetNo==0) { //The counter has rolled over
+					packetNumber = 0;
+					ackPacketNumber = 0;
+				}
+
 				if(req==Request.READ) {
 					if(ackPacketNumber==packetNo) {
 						ackPacketNumber++;
@@ -459,18 +483,18 @@ public class TFTPClientConnection extends Thread {
 		sendReceiveSocket.close();
 		System.out.println("File Transfer Complete");
 		System.out.println();
-	    if(req == Request.READ) {
-	  	   try {
-	    		   fileHandler.closeInFile();
-	    	   } catch (TFTPException e) {
-	    		   System.out.println("Error closing file " + path + filename + "\n" );
-	    	   }
-	       } else if (req == Request.WRITE) {
-	    	   try {
-	    		   fileHandler.closeOutFile();
-	    	   } catch (TFTPException e) {
-	    		   System.out.println("Error closing file " + path + filename + "\n" );
-	    	   }
-	       }		
+		if(req == Request.READ) {
+			try {
+				fileHandler.closeInFile();
+			} catch (TFTPException e) {
+				System.out.println("Error closing file " + path + filename + "\n" );
+			}
+		} else if (req == Request.WRITE) {
+			try {
+				fileHandler.closeOutFile();
+			} catch (TFTPException e) {
+				System.out.println("Error closing file " + path + filename + "\n" );
+			}
+		}		
 	}
 }

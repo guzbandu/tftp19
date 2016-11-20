@@ -22,7 +22,7 @@ public class TFTPServer{
 			// Construct a datagram socket and bind it to port 69
 			// on the local host machine. This socket will be used to
 			// receive UDP Datagram packets.
-			receiveSocket = new DatagramSocket(2069);
+			receiveSocket = new DatagramSocket(69);
 			receiveSocket.setSoTimeout(100);
 			count=0;
 		} catch (SocketException se) {
@@ -102,7 +102,7 @@ public class TFTPServer{
 			// Create a new client connection thread to send the DatagramPacket unless the quit command has been received
 			if(!controller.quit) {
 				Thread clientConnection = 
-					new TFTPClientConnection("Client Connection Thread", receivePacket, controller);
+					new TFTPClientConnection("Client Connection Thread", receivePacket, controller, receivePacket.getPort());
 				clientConnection.start();
 				count=0;
 			}			
