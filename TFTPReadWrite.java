@@ -35,7 +35,7 @@ public class TFTPReadWrite {
 				}
 				file.createNewFile();
 			} catch (IOException e) {
-				e.printStackTrace();
+				throw new TFTPException(4,"Error Code #4: Illegal TFTP operation");
 			}
 			try {
 				outStream = new FileOutputStream(file);
