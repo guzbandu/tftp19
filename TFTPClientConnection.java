@@ -113,9 +113,8 @@ public class TFTPClientConnection extends Thread {
 			try{
 				fileHandler = new TFTPReadWrite(filename, "WRITE", path, "Client Connection");
 			}catch(TFTPException e){
-				response = new byte[516];
-				byte[] error = e.getErrorBytes();
-				System.arraycopy(error, 0, response, 0, error.length);
+				sendPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+						receivePacket.getAddress(), receivePacket.getPort());
 				req=Request.ERROR;
 				fileHandler = null;
 				quit = true;
@@ -124,14 +123,8 @@ public class TFTPClientConnection extends Thread {
 			try{
 				fileHandler = new TFTPReadWrite(filename, "READ", path, "Client Connection");
 			}catch(TFTPException e){
-				System.out.println("Read new file error being built.");
-				response = new byte[516];
-				byte[] error = e.getErrorBytes();
-				int n;
-				for(n=4;n<error.length;n++){
-					if(error[n]==0) break;
-				}
-				System.arraycopy(error, 0, response, 0, n);
+				sendPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+						receivePacket.getAddress(), receivePacket.getPort());
 				req=Request.ERROR;
 				fileHandler = null;
 				quit = true;
