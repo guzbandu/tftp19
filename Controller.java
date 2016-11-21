@@ -2,14 +2,14 @@ import java.util.Scanner;
 
 public class Controller extends Thread{
 	private String outputMode = "verbose";//"quiet";
-	private String runMode = "normal";//"test";
+	private String runMode = "test";//"test";
 	private String transferMode = "OCTET";
 	public boolean quit = false;
 	private String user;
 	private String path = "";
-	private String testSituation = "1";
-	private String affectedOpcode = "3";
-	private String packetNumber = "1";
+	private String testSituation = "2";
+	private String affectedOpcode = "2";
+	private String packetNumber = "0";
 	private String delayTime = "4000";
 	private String illegalOperation = "1";
 

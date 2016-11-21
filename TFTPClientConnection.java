@@ -177,12 +177,12 @@ public class TFTPClientConnection extends Thread {
 		//Output packet to send
 		System.out.println("Server: Sending packet:");
 		if (outputMode.equals("verbose")){
-			TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
+			if(sendPacket!=null) TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 		}
 		//Sending first packet, iterator starts at packet to send next
 		int i = 2;
 		try {
-			sendReceiveSocket.send(sendPacket);
+			if(sendPacket!=null) sendReceiveSocket.send(sendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);

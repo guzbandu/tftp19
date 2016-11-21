@@ -20,8 +20,8 @@ public class TFTPSim{
 	private int opCode;
 	private int packetCount;
 	public static Controller controller;
-	private boolean networkErrorDone = false;
 	protected boolean receive_success = false;
+	private boolean networkErrorDone = false;
 	private boolean initialConnection = true;
 	private int resend_count = 0; //Used to track the number of times we try to resend a packet
 	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up 
