@@ -476,18 +476,16 @@ public class TFTPClient {
 		System.out.println("File Transfer Complete");
 		System.out.println();
 
-		if(request.equalsIgnoreCase("READ")) {
-			try {
-				fileHandler.closeOutFile();
-			} catch (TFTPException e) {
-				System.out.println("Error closing file " + path + filename + "\n" );
-			} 
-		} else if (request.equalsIgnoreCase("WRITE")) {
-			try {
-				fileHandler.closeInFile();
-			} catch (TFTPException e) {
-				System.out.println("Error closing file " + path + filename + "\n" );
-			}
+		//Closing Files
+		try {
+			fileHandler.closeOutFile();
+		} catch (TFTPException e) {
+			System.out.println("Error closing file " + path + filename + "\n" );
+		} 
+		try {
+			fileHandler.closeInFile();
+		} catch (TFTPException e) {
+			System.out.println("Error closing file " + path + filename + "\n" );
 		}
 
 	}
