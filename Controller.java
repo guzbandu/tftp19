@@ -12,6 +12,8 @@ public class Controller extends Thread{
 	private String packetNumber = "1";
 	private String delayTime = "4000";
 	private String illegalOperation = "1";
+	//For illegal TFTP operation
+	private String byteChange = "5";
 
 	public static TFTPClient client;
 
@@ -52,6 +54,7 @@ public class Controller extends Thread{
 			System.out.println("Packet Number:\t" + packetNumber);
 			System.out.println("Delay Time:\t" + delayTime);
 			System.out.println("Illegal TFTP Operation:\t" + illegalOperation);
+			System.out.println("Byte Increase:\t" + byteChange);
 		}
 		System.out.println("Path:\t" + path);
 		System.out.print("\nTo set output mode type 'verbose' or 'quiet'");
@@ -65,6 +68,7 @@ public class Controller extends Thread{
 			System.out.print("\nTo set affect packet and packet number type 'packet' or 'number'");
 			System.out.print("\nTo set delay time type 'delay'");
 			System.out.print("\nTo set illegal TFTP operation type 'operation'");
+			System.out.print("\nTo set byte increase for illegal TFTP operation type 'byte'");
 		}
 		System.out.print("\nTo set quit type 'quit'");
 		System.out.println();
@@ -150,6 +154,12 @@ public class Controller extends Thread{
 					illegalOperation = operation;
 				}
 			}
+			if(command.equals("byte")){
+				System.out.print("\nEnter amount:");
+				String time = scanner.nextLine();
+				System.out.println();
+				byteChange = time;
+			}
 		}
 		
         if(command.equals("quit")){
@@ -181,6 +191,9 @@ public class Controller extends Thread{
 	}
 	public int getIllegalOperation() {
 		return Integer.parseInt(illegalOperation);
+	}
+	public int getByteChange() {
+		return Integer.parseInt(byteChange);
 	}
 	
 	public void setPath(String pth) {
