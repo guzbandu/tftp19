@@ -230,8 +230,9 @@ public class TFTPClient {
 			if (outputMode.equals("verbose")){
 				TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			}
-			byte unsignedByte = (byte) ((data[2] << 8) + data[3]);
-			int packetNo = (int) (unsignedByte & 0xff);
+			byte unsignedByteTens = (byte) (receivePacket.getData()[2]);
+			byte unsignedByteOnes = (byte) (receivePacket.getData()[3]);
+			int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
 			if(packetNo==0&&oldPacketNo>packetNo) { //The counter has rolled over
 				packetNumber = 0; 
@@ -342,8 +343,9 @@ public class TFTPClient {
 						String sending = new String(msg,0,len);
 						System.out.println(sending);
 					}
-					unsignedByte = (byte) ((msg[2] << 8) + msg[3]);
-					packetNo = (int) (unsignedByte & 0xff);
+					unsignedByteTens = (byte) (sendPacket.getData()[2]);
+					unsignedByteOnes = (byte) (sendPacket.getData()[3]);
+					packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 					System.out.println("Packet No.: " + packetNo);
 
 					// Send the datagram packet to the server via the send/receive socket.
@@ -450,8 +452,9 @@ public class TFTPClient {
 						TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 					}
 					//Make the byte count in the range from 0 to 255 instead of -128 to 127
-					unsignedByte = (byte) ((data[2] << 8) + data[3]);
-					packetNo = (int) (unsignedByte & 0xff);
+					unsignedByteTens = (byte) (receivePacket.getData()[2]);
+					unsignedByteOnes = (byte) (receivePacket.getData()[3]);
+					packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 					System.out.println("Packet No.: " + packetNo + "\n");
 					if(packetNo==0&&oldPacketNo>packetNo) { //The counter has rolled over
 						packetNumber = 0;
