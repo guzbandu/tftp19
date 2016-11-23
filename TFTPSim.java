@@ -271,7 +271,7 @@ public class TFTPSim{
 				len = packet.getLength();
 				illegalData = new byte[len];
 				System.arraycopy(packet.getData(), 0, illegalData, 0, len);
-				illegalData[3] = (byte) (illegalData[3] + 5);
+				illegalData[3] = (byte) (illegalData[3] + controller.getByteChange());
 			}
 			else if(controller.getIllegalOperation()==5) {
 				// no null separation between filename and mode

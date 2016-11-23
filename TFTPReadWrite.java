@@ -80,18 +80,22 @@ public class TFTPReadWrite {
 	}
 	
 	public void closeInFile() {
-		try {
-			inStream.close();
-		} catch (IOException e) {
-			throw new TFTPException(2,"Error Code #2: Access Violation");
+		if (inStream != null){
+			try {
+				inStream.close();
+			} catch (IOException e) {
+				throw new TFTPException(2,"Error Code #2: Access Violation");
+			}
 		}
 	}
 
 	public void closeOutFile() {
-		try {
-			outStream.close();
-		} catch (IOException e) {
-			throw new TFTPException(2,"Error Code #2: Access Violation");
+		if (outStream != null){
+			try {
+				outStream.close();
+			} catch (IOException e) {
+				throw new TFTPException(2,"Error Code #2: Access Violation");
+			}
 		}
 	}
 
