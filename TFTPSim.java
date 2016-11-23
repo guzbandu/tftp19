@@ -187,11 +187,13 @@ public class TFTPSim{
 				&& packetCount == controller.getPacketNumber() && !networkErrorDone){
 			networkErrorDone = true;
 			System.out.println("Losing packet.");
+			System.out.println();
 			return; //lose packet
 		}else if(controller.getTestSituation()==2 && packet.getData()[1]==controller.getAffectedOpcode()
 				&& packetCount == controller.getPacketNumber() && !networkErrorDone){
 			networkErrorDone = true;
 			System.out.println("Delaying packet.");
+			System.out.println();
 			//delay packet
 			try {
 				Thread.sleep(controller.getDelayTime());
@@ -209,6 +211,7 @@ public class TFTPSim{
 				&& packetCount == controller.getPacketNumber() && !networkErrorDone){
 			networkErrorDone = true;
 			System.out.println("Duplicating packet.");
+			System.out.println();
 			//duplicate packet. Send packet, sleep, then send again.
 			try {
 				socket.send(packet);
@@ -306,7 +309,9 @@ public class TFTPSim{
 			if (controller.getIllegalOperation()!=0) {
 				packet = new DatagramPacket(illegalData, len, packet.getAddress(), packet.getPort()); 
 			}
-
+			
+			System.out.println("Illegal operation packet.");
+			System.out.println();
 			//send packet
 			try {
 				socket.send(packet);
@@ -328,6 +333,8 @@ public class TFTPSim{
 				System.exit(1);
 			}
 
+			System.out.println("Unknown TID packet.");
+			System.out.println();
 			//send packet using unknownTID
 			try {
 				unknownTID.send(packet);

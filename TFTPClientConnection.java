@@ -352,7 +352,6 @@ public class TFTPClientConnection extends Thread {
 			}
 			//Creating packet to send, setting op code and data to send if client reading
 			if(req == Request.READ) {
-				System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo); //TODO
 				if (i < fileHandler.getNumSections()) {
 					finalPacketCount = 0;
 				}
@@ -381,7 +380,6 @@ public class TFTPClientConnection extends Thread {
 					//if()
 				} 
 			} else if(req == Request.WRITE) {
-				System.out.println("packetNumber:"+packetNumber+" packetNo:"+packetNo); //TODO
 				if(packetNumber==packetNo) {
 					response = new byte[4];
 					response[0] = 0;
@@ -405,7 +403,6 @@ public class TFTPClientConnection extends Thread {
 				}
 			}
 
-			System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo+" finalPacketCount:"+finalPacketCount); //TODO
 			if(req == Request.WRITE || (req== Request.READ && ackPacketNumber==packetNo&&finalPacketCount<=1)) {
 				sendPacket = new DatagramPacket(response, response.length,
 						receivePacket.getAddress(), receivePacket.getPort());
@@ -447,6 +444,8 @@ public class TFTPClientConnection extends Thread {
 				if (i >= fileHandler.getNumSections()&& finalPacketCount>=1)	{
 					quit = true;
 				}
+			} else if (req==Request.READ&&ackPacketNumber==packetNo&&finalPacketCount>=1) {
+				break; //we have received the final ack packet and we may quit
 			}
 
 			if(quit&&req==Request.READ) {
@@ -536,9 +535,7 @@ public class TFTPClientConnection extends Thread {
 				oldPacketNo = packetNo;
 
 				if(req==Request.READ) {
-					System.out.println("ackPacketNumber:"+ackPacketNumber+" packetNo:"+packetNo); //TODO
 					if(ackPacketNumber==packetNo) {
-						System.out.println("Incrementing ackPacketNumber"); //TODO
 						ackPacketNumber++;
 					} else {
 						System.out.println("Duplicate ack.");

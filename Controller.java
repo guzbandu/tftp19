@@ -7,9 +7,9 @@ public class Controller extends Thread{
 	public boolean quit = false;
 	private String user;
 	private String path = "";
-	private String testSituation = "2";
-	private String affectedOpcode = "3";
-	private String packetNumber = "1";
+	private String testSituation = "5";
+	private String affectedOpcode = "4";
+	private String packetNumber = "2";
 	private String delayTime = "4000";
 	private String illegalOperation = "1";
 	//For illegal TFTP operation
