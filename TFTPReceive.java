@@ -27,6 +27,7 @@ public class TFTPReceive extends Thread {
 			//checking for error code #5
 			if (parent.hostPort != parent.receivePacket.getPort()){
 				parent.error_number=5;
+				parent.set_receive_success(false);
 			}
 			//checking for error code #4
 			if (checkIllegalTFTP(parent.receivePacket)){

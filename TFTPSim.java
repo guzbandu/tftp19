@@ -126,6 +126,12 @@ public class TFTPSim{
 				// Send the datagram packet to the server via the send/receive socket potentially starting the error scenario
 				errorSimSend(sendReceiveSocket,sendPacket,data);
 
+				if (controller.getOutputMode().equals("verbose")){
+					System.out.println("Simulator: packet sent using port " + sendReceiveSocket.getLocalPort());
+					System.out.println();
+					System.out.println("Packet count "+packetCount);
+				}
+				
 			}
 
 			if(opCode==1&&!initialConnection) packetCount++;
@@ -325,23 +331,19 @@ public class TFTPSim{
 
 			networkErrorDone = true;
 
-			DatagramSocket unknownTID = null;
-			try {
-				unknownTID = new DatagramSocket();
-			} catch (SocketException se) {   // Can't create the socket.
-				se.printStackTrace();
-				System.exit(1);
-			}
-
 			System.out.println("Unknown TID packet.");
 			System.out.println();
 			//send packet using unknownTID
+			DatagramSocket unknownTID = null;
 			try {
+				unknownTID = new DatagramSocket();
 				unknownTID.send(packet);
+				unknownTID.disconnect();
+				unknownTID.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);
-			}
+			} 
 
 			//send packet using normal TID
 			try {
@@ -350,6 +352,7 @@ public class TFTPSim{
 				e.printStackTrace();
 				System.exit(1);
 			}
+
 
 		}else{
 			//send packet normally
