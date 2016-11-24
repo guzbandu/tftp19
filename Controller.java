@@ -1,3 +1,5 @@
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Controller extends Thread{
@@ -14,6 +16,7 @@ public class Controller extends Thread{
 	private String illegalOperation = "0";
 	//For illegal TFTP operation
 	private String byteChange = "5";
+	private InetAddress serverIP;
 
 	public static TFTPClient client;
 
@@ -21,6 +24,11 @@ public class Controller extends Thread{
 	//what options user has access to
 	public Controller(TFTPClient client){
 		this.user = "Client";
+		try {
+			serverIP = InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public Controller(TFTPSim sim){
@@ -48,6 +56,7 @@ public class Controller extends Thread{
 		System.out.println("Output Mode:\t" + outputMode);
 		if(user.equals("Client")){
 			System.out.println("Run Mode:\t" + runMode);
+			System.out.println("Server IP:\t" + serverIP.toString());
 		}
 		if(user.equals("Sim")){
 			System.out.println("Test Situation:\t" + testSituation);
@@ -63,6 +72,10 @@ public class Controller extends Thread{
 		if(user.equals("Client")){
 			System.out.print("\nTo set run mode type 'normal' or 'test'");
 			System.out.print("\nTo set send a request type 'read' or 'write'");
+			System.out.print("\nTo set the server's IP type 'serverip'");
+		}
+		if(user.equals("Server")){
+			System.out.print("\nTo get the server's host name type 'getip'");
 		}
 		if(user.equals("Sim")){
 			System.out.print("\nTo set test situation type 'situation'");
@@ -111,6 +124,27 @@ public class Controller extends Thread{
 				System.out.println();
             	TFTPClient c = new TFTPClient();
             	c.sendAndReceive("WRITE", filename, transferMode, path, outputMode, runMode);
+			}
+			if(command.equals("serverip")){
+				System.out.print("\nEnter a host name:");
+				String hostname = scanner.nextLine();
+				System.out.println();
+				try {
+					serverIP = InetAddress.getByName(hostname);
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		if(user.equals("Server")){
+			if(command.equals("getip")){
+				try {
+					System.out.print("\nHost name: " + InetAddress.getLocalHost().getHostName());
+					System.out.println();
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
