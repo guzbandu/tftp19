@@ -232,6 +232,9 @@ public class Controller extends Thread{
 	public int getByteChange() {
 		return Integer.parseInt(byteChange);
 	}
+	public InetAddress getServerIP() {
+		return serverIP;
+	}
 	
 	public void setPath(String pth) {
 		path = pth;

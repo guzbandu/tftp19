@@ -130,13 +130,9 @@ public class TFTPClient {
 		//     address of the local host.
 		//  69 - the destination port number on the destination host.
 		//Sending packet
-		try {
-			sendPacket = new DatagramPacket(msg, len,
-					InetAddress.getLocalHost(), sendPort);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
+		
+		sendPacket = new DatagramPacket(msg, len, controller.getServerIP(), sendPort);
+
 		//Output for sending packet
 		if (outputMode.equals("verbose")){
 			System.out.println("Client: Sending packet:");
@@ -277,13 +273,9 @@ public class TFTPClient {
 					else p = receivePacket.getPort();
 
 					//Sending packet
-					try {
-						sendPacket = new DatagramPacket(msg, len,
-								InetAddress.getLocalHost(), p);
-					} catch (UnknownHostException e) {
-						e.printStackTrace();
-						System.exit(1);
-					}
+				
+					sendPacket = new DatagramPacket(msg, len, controller.getServerIP(), p);
+						
 					//Output for sending packet
 					if (outputMode.equals("verbose")){
 						System.out.println("Client: Sending packet:");
