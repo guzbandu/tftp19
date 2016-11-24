@@ -1,7 +1,7 @@
 import java.util.Scanner;
 
 public class Controller extends Thread{
-	private String outputMode = "verbose";//"quiet";
+	private String outputMode = "quiet";//"verbose";
 	private String runMode = "normal";//"test";
 	private String transferMode = "OCTET";
 	public boolean quit = false;
@@ -67,6 +67,8 @@ public class Controller extends Thread{
 		if(user.equals("Sim")){
 			System.out.print("\nTo set test situation type 'situation'");
 			System.out.print("\nTo set affect packet and packet number type 'packet' or 'number'");
+			System.out.print("\n   A read starts at number 1");
+			System.out.print("\n   A write starts at number 0");
 			System.out.print("\nTo set delay time type 'delay'");
 			System.out.print("\nTo set illegal TFTP operation type 'operation'");
 			System.out.print("\nTo set byte increase for illegal TFTP operation type 'byte'");

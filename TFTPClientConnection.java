@@ -95,7 +95,12 @@ public class TFTPClientConnection extends Thread {
 			}
 			if (k==len) req=Request.ERROR; // didn't find a 0 byte
 			if (k==j+1) req=Request.ERROR; // mode is 0 bytes long
-			mode = new String(data,j,k-j-1);
+			mode = new String(data,j+1,k-j-1);
+			if(req!=Request.ERROR) { //check if it is a valid mode
+				if(!(mode.equalsIgnoreCase("netascii")
+						||mode.equalsIgnoreCase("octet")
+						||mode.equalsIgnoreCase("mail"))) req=Request.ERROR;
+			}
 		}
 
 		if(k!=len-1) req=Request.ERROR; // other stuff at end of packet     

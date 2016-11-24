@@ -72,6 +72,12 @@ public class TFTPServerReceive extends Thread {
 			}
 			if (k==len) illegalTFTP = true; // didn't find a 0 byte
 			if (k==j+1) illegalTFTP = true; // mode is 0 bytes long
+			if(!illegalTFTP) { //check if it is a valid mode
+				String mode = new String(data,j+1,k-j-1);
+				if(!(mode.equalsIgnoreCase("netascii")
+						||mode.equalsIgnoreCase("octet")
+						||mode.equalsIgnoreCase("mail"))) illegalTFTP = true;
+			}
 		}
 
 		if(readWrite && k!=len-1) illegalTFTP = true; // other stuff at end of packet 

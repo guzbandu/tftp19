@@ -141,9 +141,6 @@ public class TFTPClient {
 		if (outputMode.equals("verbose")){
 			System.out.println("Client: Sending packet:");
 			TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-			// Form a String from the byte array, and print the string.
-			String sending = new String(msg,0,len);
-			System.out.println(sending);
 		}
 
 		//Sending initial request packet
@@ -291,9 +288,6 @@ public class TFTPClient {
 					if (outputMode.equals("verbose")){
 						System.out.println("Client: Sending packet:");
 						TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-						// Form a String from the byte array, and print the string.
-						String sending = new String(msg,0,len);
-						System.out.println(sending);
 					}
 					unsignedByteTens = (byte) (sendPacket.getData()[2]);
 					unsignedByteOnes = (byte) (sendPacket.getData()[3]);
