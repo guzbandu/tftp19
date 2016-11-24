@@ -441,7 +441,7 @@ public class TFTPClient {
 				if(!receive_success) {
 					//we did not receive a packet before timing out, re-send our packet
 					//Sending request packet
-					if(sendPacket.getData()[1]!=1) {
+					if(sendPacket.getData()[1]!=1&&sendPacket.getData()[1]!=2) { //Do not re-send an initial request for read or write
 						try {
 							if(controller.getOutputMode().equals("verbose"))
 								TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
