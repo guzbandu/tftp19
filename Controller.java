@@ -7,11 +7,11 @@ public class Controller extends Thread{
 	public boolean quit = false;
 	private String user;
 	private String path = "";
-	private String testSituation = "5";
-	private String affectedOpcode = "4";
+	private String testSituation = "4";
+	private String affectedOpcode = "1";
 	private String packetNumber = "1";
 	private String delayTime = "4000";
-	private String illegalOperation = "1";
+	private String illegalOperation = "0";
 	//For illegal TFTP operation
 	private String byteChange = "5";
 
@@ -29,6 +29,7 @@ public class Controller extends Thread{
 
 	public Controller(TFTPServer server){
 		this.user = "Server";
+		
 	}
 	
 	//Main loop
@@ -149,7 +150,7 @@ public class Controller extends Thread{
 						+ "\n  7:no null termination \n  8:extra null termination\n");
 				String operation = scanner.nextLine();
 				System.out.println();
-				if(operation.equals("1")||operation.equals("2")||operation.equals("3")||operation.equals("4")||
+				if(operation.equals("0")||operation.equals("1")||operation.equals("2")||operation.equals("3")||operation.equals("4")||
 						operation.equals("5")||operation.equals("6")||operation.equals("7")||operation.equals("8")){
 					illegalOperation = operation;
 				}
