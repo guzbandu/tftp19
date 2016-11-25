@@ -218,6 +218,13 @@ public class TFTPClientConnection extends Thread {
 			byte unsignedByteOnes = (byte) (receivePacket.getData()[3]);
 			int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
+			if(packetNo>ackPacketNumber||packetNo<=(ackPacketNumber-3)) { //Check for invalid packet number
+				TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+				DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+						receivePacket.getAddress(), receivePacket.getPort());
+				sendErrorMessage(unknownIDPacket);
+			}
+
 		}
 
 		//Main loop
@@ -256,13 +263,36 @@ public class TFTPClientConnection extends Thread {
 			oldPacketNo = packetNo;
 
 			//Checking for error packets
-			if(5 == (int)((data[0] << 8) + data[1])) {
-				req = Request.ERROR;
-				System.out.println("Error from the client:");
-				String message = new String(data);
-				message = message.substring(4,message.length());
-				System.out.println(message+"\n");
-				break; //Stop transfer error from client received
+			if(5 == (int)((receivePacket.getData()[0] << 8) + receivePacket.getData()[1])) {
+				if(!(5 == (int)((receivePacket.getData()[2] << 8) + receivePacket.getData()[3]))){ //Unless it is an unknown TID error quit
+					req = Request.ERROR;
+					System.out.println("Error from the client:");
+					String message = new String(data);
+					message = message.substring(4,message.length());
+					System.out.println(message+"\n");
+					break; //Stop transfer error from client received
+				}
+			}
+			
+			//If it is not an error packet check for illegal packet numbers
+			if(req == Request.READ) {
+				if (packetNo>ackPacketNumber||packetNo<=(ackPacketNumber-3)) {
+					TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					sendErrorMessage(unknownIDPacket);
+					req = Request.ERROR;
+					break;
+				} 
+			} else if (req == Request.WRITE) {
+				if (packetNo>packetNumber||packetNo<=(packetNumber-3)) {
+					TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), receivePacket.getPort());
+					sendErrorMessage(unknownIDPacket);
+					req = Request.ERROR;
+					break;
+				}
 			}
 
 			//Checking if received last packet
@@ -397,9 +427,28 @@ public class TFTPClientConnection extends Thread {
 				}
 				oldPacketNo = packetNo;
 
+				//Checking for error packets
+				if(5 == (int)((receivePacket.getData()[0] << 8) + receivePacket.getData()[1])) {
+					if(!(5 == (int)((receivePacket.getData()[2] << 8) + receivePacket.getData()[3]))){ //Unless it is an unknown TID error quit
+						req = Request.ERROR;
+						System.out.println("Error from the client:");
+						String message = new String(data);
+						message = message.substring(4,message.length());
+						System.out.println(message+"\n");
+						break; //Stop transfer error from client received
+					}
+				}
+				
 				if(req==Request.READ) {
 					if(ackPacketNumber==packetNo) {
 						ackPacketNumber++;
+					} else if (packetNo>ackPacketNumber||packetNo<=(ackPacketNumber-3)) {
+						TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+						DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						sendErrorMessage(unknownIDPacket);
+						req = Request.ERROR;
+						break;
 					} else {
 						System.out.println("Duplicate ack.");
 						System.out.println("");
@@ -450,7 +499,7 @@ public class TFTPClientConnection extends Thread {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if(error_number==5&&!err_msg_sent) { //send a message to unknown TID and continue normal flow but only send the error message once
+			if(error_number==5&&!err_msg_sent) { //send a message to unknown TID and continue normal flow. IMPORTANT only send the error message once
 				err_msg_sent = true;
 				System.out.println("Server: Unknown TID received:");
 				if (outputMode.equals("verbose")){
@@ -459,29 +508,12 @@ public class TFTPClientConnection extends Thread {
 				TFTPException e = new TFTPException(5,"Error Code #5: Unknown transfer ID");
 				DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 						receivePacket.getAddress(), receivePacket.getPort());
-				if (outputMode.equals("verbose")){
-					TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
-				}
-				System.out.println();
-				try {
-					sendReceiveSocket.send(unknownIDPacket);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+				sendErrorMessage(unknownIDPacket);
 			} else if (error_number==4) { //send an error message and terminate flow
 				TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
 				DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 						receivePacket.getAddress(), receivePacket.getPort());
-				System.out.println("Server: Sending packet:");
-				if (outputMode.equals("verbose")){
-					TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
-				}
-				System.out.println();
-				try {
-					sendReceiveSocket.send(unknownIDPacket);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+				sendErrorMessage(unknownIDPacket);
 				break;
 			}
 			if(error_number==0||error_number==5) {
@@ -504,6 +536,27 @@ public class TFTPClientConnection extends Thread {
 				resend_count++;
 			}
 		}
+	}
 	
+	private void sendErrorMessage(DatagramPacket errorPacket) {
+		System.out.println("Server: Sending packet:");
+		if (outputMode.equals("verbose")){
+			TFTPReadWrite.printPacket(errorPacket, errorPacket.getPort(), "send");
+		}
+		byte unsignedByteTens = (byte) (errorPacket.getData()[2]);
+		byte unsignedByteOnes = (byte) (errorPacket.getData()[3]);
+		int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
+		System.out.println("Packet No.: " + packetNo);
+		// Send the datagram packet to the client via the send socket.
+		try {
+			sendReceiveSocket.send(errorPacket);
+		} catch (IOException ie) {
+			ie.printStackTrace();
+			System.exit(1);
+		}
+		if (outputMode.equals("verbose")){
+			System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+			System.out.println();
+		}
 	}
 }

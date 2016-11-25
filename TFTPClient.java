@@ -60,9 +60,9 @@ public class TFTPClient {
 		//user sends directly to port 69 on the server
 		//otherwise it sends to the error simulator
 		if (runMode.equals("normal")) 
-			sendPort = 69;
+			sendPort = 2069;
 		else
-			sendPort = 23;
+			sendPort = 2023;
 		
 		//01 for READ and 02 for WRITE
 		msg[0] = 0;
@@ -164,7 +164,7 @@ public class TFTPClient {
 				System.out.println("Client: Waiting for packet.");
 
 			//Receiving packet
-			receivePacketFromServer(request, outputMode);
+			receivePacketFromServer(request, outputMode, runMode, sendPort);
 
 			if(!receive_success) {
 				request = "ERROR";
@@ -189,13 +189,44 @@ public class TFTPClient {
 			oldPacketNo = packetNo;
 
 			//Checking for error packets
-			if(5 == (int)((data[0] << 8) + data[1])) {
-				request = "ERROR";
-				System.out.print("Error from the server ");
-				String message = new String(data);
-				message = message.substring(4,message.length());
-				System.out.println(message+"\n");
-				quit = true;
+			if(5 == (int)((receivePacket.getData()[0] << 8) + receivePacket.getData()[1])) {
+				if(!(5 == (int)((receivePacket.getData()[2] << 8) + receivePacket.getData()[3]))){ //Unless it is an unknown TID error quit
+					request = "ERROR";
+					System.out.print("Error from the server:");
+					String message = new String(data);
+					message = message.substring(4,message.length());
+					System.out.println(message+"\n");
+					quit = true;
+				}
+			}
+
+			//If not an error packet then check for illegal packet numbers
+			if(request.equalsIgnoreCase("WRITE")) {
+				if (packetNo>ackPacketNumber||packetNo<=(ackPacketNumber-3)) { //Check for illegal packet number
+					TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+					int p; // Port we are sending to
+					// Sim's sendSocket is 23, Server's is the Thread's
+					if (runMode.equals("test")) p = sendPort;
+					else p = receivePacket.getPort();
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), p);
+					sendErrorMessage(unknownIDPacket);
+					request = "ERROR";
+					break;
+				} 
+			} else if (request.equalsIgnoreCase("READ")) {
+				if (packetNo>packetNumber||packetNo<=(packetNumber-3)) { //Check for illegal packet number
+					int p; // Port we are sending to
+					// Sim's sendSocket is 23, Server's is the Thread's
+					if (runMode.equals("test")) p = sendPort;
+					else p = receivePacket.getPort();
+					TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+					DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+							receivePacket.getAddress(), p);
+					sendErrorMessage(unknownIDPacket);
+					request = "ERROR";
+					break;
+				}
 			}
 
 			if (packetNumber==packetNo) {
@@ -316,6 +347,8 @@ public class TFTPClient {
 					System.out.println("");
 					if(i >= fileHandler.getNumSections() && finalPacketCount>=1)
 						quit = true;
+				} else if (request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo&&finalPacketCount>=1) {
+					break; //we have received the final ack packet and we may quit
 				}
 
 				System.out.println();
@@ -329,7 +362,7 @@ public class TFTPClient {
 						System.out.println("Client: Waiting for packet.");
 
 					//Receiving packet
-					receivePacketFromServer(request, outputMode);
+					receivePacketFromServer(request, outputMode, runMode, sendPort);
 					
 					if(!receive_success) {
 						request = "ERROR";
@@ -352,10 +385,33 @@ public class TFTPClient {
 						ackPacketNumber = 0;
 					}
 					oldPacketNo = packetNo;
-
+					
+					//Checking for error packets
+					if(5 == (int)((receivePacket.getData()[0] << 8) + receivePacket.getData()[1])) {
+						if(!(5 == (int)((receivePacket.getData()[2] << 8) + receivePacket.getData()[3]))){ //Unless it is an unknown TID error quit
+							request = "ERROR";
+							System.out.print("Error from the server:");
+							String message = new String(data);
+							message = message.substring(4,message.length());
+							System.out.println(message+"\n");
+							quit = true;
+						}
+					}
+					
 					if(request.equalsIgnoreCase("WRITE")) {
 						if(ackPacketNumber==packetNo) {
 							ackPacketNumber++;
+						} else if (packetNo>ackPacketNumber||packetNo<=(ackPacketNumber-3)) { //Double check for Illegal packet number
+							TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+							int p; // Port we are sending to
+							// Sim's sendSocket is 23, Server's is the Thread's
+							if (runMode.equals("test")) p = sendPort;
+							else p = receivePacket.getPort();
+							DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+									receivePacket.getAddress(), p);
+							sendErrorMessage(unknownIDPacket);
+							request = "ERROR";
+							break;
 						} else {
 							System.out.println("Duplicate ack ignored.");
 							System.out.println("");
@@ -388,7 +444,7 @@ public class TFTPClient {
 
 	}
 	
-	private void receivePacketFromServer(String request, String outputMode) {
+	private void receivePacketFromServer(String request, String outputMode, String runMode, int sendPort) {
 		receive_success=false; //Start loop not having received anything
 		resend_count = 0;
 		error_number = 0;
@@ -409,32 +465,20 @@ public class TFTPClient {
 					TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 				}
 				TFTPException e = new TFTPException(5,"Error Code #5: Unknown transfer ID");
+				// In the case of an invalid TID we do not want to force it back to the proper Sim port
+				int p = receivePacket.getPort();
 				DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-						receivePacket.getAddress(), receivePacket.getPort());
-				System.out.println("Server: Sending packet:");
-				if (outputMode.equals("verbose")){
-					TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
-				}
-				System.out.println();
-				try {
-					sendReceiveSocket.send(unknownIDPacket);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+						receivePacket.getAddress(), p);
+				sendErrorMessage(unknownIDPacket);
 			} else if (error_number==4) { //send an error message and terminate flow
 				TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
+				int p; // Port we are sending to
+				// Sim's sendSocket is 23, Server's is the Thread's
+				if (runMode.equals("test")) p = sendPort;
+				else p = receivePacket.getPort();
 				DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-						receivePacket.getAddress(), receivePacket.getPort());
-				System.out.println("Client: Sending packet:");
-				if (outputMode.equals("verbose")){
-					TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
-				}
-				System.out.println();
-				try {
-					sendReceiveSocket.send(unknownIDPacket);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+						receivePacket.getAddress(), p);
+				sendErrorMessage(unknownIDPacket);
 				break;
 			}
 			if(error_number==0||error_number==5) {
@@ -443,7 +487,7 @@ public class TFTPClient {
 					//Sending request packet
 					if(sendPacket.getData()[1]!=1&&sendPacket.getData()[1]!=2) { //Do not re-send an initial request for read or write
 						try {
-							if(controller.getOutputMode().equals("verbose"))
+							if(outputMode.equals("verbose"))
 								TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 							sendReceiveSocket.send(sendPacket);
 						} catch (IOException e) {
@@ -459,6 +503,27 @@ public class TFTPClient {
 				resend_count++;
 			}
 		}
+	}
+	
+	private void sendErrorMessage(DatagramPacket errorPacket) {
+		System.out.println("Client: Sending packet:");
+		if (controller.getOutputMode().equals("verbose")){
+			TFTPReadWrite.printPacket(errorPacket, errorPacket.getPort(), "send");
+		}
+		byte unsignedByteTens = (byte) (errorPacket.getData()[2]);
+		byte unsignedByteOnes = (byte) (errorPacket.getData()[3]);
+		int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
+		System.out.println("Packet No.: " + packetNo);
+		// Send the datagram packet to the client via the send socket.
+		try {
+			sendReceiveSocket.send(errorPacket);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		if (controller.getOutputMode().equals("verbose")){
+			System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
+			System.out.println();
+		}		
 	}
 
 	public static void main(String args[]){
