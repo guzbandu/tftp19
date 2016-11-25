@@ -365,6 +365,7 @@ public class TFTPClientConnection extends Thread {
 				unsignedByteOnes = (byte) (sendPacket.getData()[3]);
 				packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 				System.out.println("Packet No.: " + packetNo);
+				System.out.println();
 				
 				// Send the datagram packet to the server via the send socket.
 				try {

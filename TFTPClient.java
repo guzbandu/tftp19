@@ -55,7 +55,7 @@ public class TFTPClient {
 		boolean send = false; //Used if error on this side and we need to send the final error message
 		hasHostPort = false;
 		int finalPacketCount = 0;
-
+	    
 		//If user enters "normal" as the mode
 		//user sends directly to port 69 on the server
 		//otherwise it sends to the error simulator
@@ -242,7 +242,9 @@ public class TFTPClient {
 						send=true;
 						System.out.println("The disk ran out of space while reading was in progress.");
 					}
-					System.out.println("Data length: " + len);
+					if (outputMode.equals("verbose")){
+						System.out.println("Data length: " + len);
+					}
 					if (len < 516)
 						last_packet=true;
 				}
@@ -316,8 +318,8 @@ public class TFTPClient {
 						System.exit(1);
 					}
 					//Output for sending packet
-					if (outputMode.equals("verbose")){
-						System.out.println("Client: Sending packet:");
+					System.out.println("Client: Sending packet:");
+					if (outputMode.equals("verbose")){						
 						TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
 					}
 					unsignedByteTens = (byte) (sendPacket.getData()[2]);

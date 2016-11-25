@@ -8,10 +8,10 @@ public class Controller extends Thread{
 	private String user;
 	private String path = "";
 	private String testSituation = "4";
-	private String affectedOpcode = "1";
+	private String affectedOpcode = "3";
 	private String packetNumber = "1";
 	private String delayTime = "4000";
-	private String illegalOperation = "0";
+	private String illegalOperation = "1";
 	//For illegal TFTP operation
 	private String byteChange = "5";
 
@@ -209,5 +209,9 @@ public class Controller extends Thread{
 	
 	public String getTransferMode() {
 		return transferMode;
+	}
+	
+	public void setOutputMode(String mode) {
+		outputMode = mode;
 	}
 }

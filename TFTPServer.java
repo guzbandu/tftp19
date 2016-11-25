@@ -117,6 +117,6 @@ public class TFTPServer{
 	public static void main( String args[] ) throws Exception{
 		TFTPServer server = new TFTPServer();
 		server.controller.start();
-		server.receiveAndSend();
+		server.receiveAndSend();	
 	}
 }
