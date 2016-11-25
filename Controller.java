@@ -1,7 +1,7 @@
 import java.util.Scanner;
 
 public class Controller extends Thread{
-	private String outputMode = "verbose";//"verbose";
+	private String outputMode = "quiet";//"verbose";
 	private String runMode = "normal";//"test";
 	private String transferMode = "OCTET";
 	public boolean quit = false;

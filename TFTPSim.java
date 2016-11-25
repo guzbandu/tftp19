@@ -25,7 +25,7 @@ public class TFTPSim{
 	private boolean initialConnection = true;
 	private int resend_count = 0; //Used to track the number of times we try to resend a packet
 	private static final int MAX_RESEND = 10; //The total number of times we will resend before giving up 
-	private int clientPort=0, serverPort=2069;
+	private int clientPort=0, serverPort=69;
 
 	public TFTPSim()
 	{
@@ -33,7 +33,7 @@ public class TFTPSim{
 			// Construct a datagram socket and bind it to port 23
 			// on the local host machine. This socket will be used to
 			// receive UDP Datagram packets from clients.
-			receiveSocket = new DatagramSocket(2023);
+			receiveSocket = new DatagramSocket(23);
 			receiveSocket.setSoTimeout(20);
 			// Construct a datagram socket and bind it to any available
 			// port on the local host machine. This socket will be used to
@@ -102,13 +102,13 @@ public class TFTPSim{
 				if(receivePacket.getData()[1] == 1) {
 					packetCount = 1; //Data comes back right away
 					networkErrorDone = false;
-					serverPort = 2069;
+					serverPort = 69;
 					opCode = 1;
 					initialConnection = true;
 				} else if (receivePacket.getData()[1]==2) {
 					packetCount = 0; //There is a 0 ack
 					networkErrorDone = false;
-					serverPort = 2069;
+					serverPort = 69;
 					opCode = 2;
 					initialConnection = true;
 				} else {

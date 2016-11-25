@@ -60,9 +60,9 @@ public class TFTPClient {
 		//user sends directly to port 69 on the server
 		//otherwise it sends to the error simulator
 		if (runMode.equals("normal")) 
-			sendPort = 2069;
+			sendPort = 69;
 		else
-			sendPort = 2023;
+			sendPort = 23;
 		
 		//01 for READ and 02 for WRITE
 		msg[0] = 0;
