@@ -3,14 +3,14 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Controller extends Thread{
-	private String outputMode = "quiet";//"verbose";
+	private String outputMode = "verbose";//"verbose";
 	private String runMode = "normal";//"test";
 	private String transferMode = "OCTET";
 	public boolean quit = false;
 	private String user;
 	private String path = "";
-	private String testSituation = "4";
-	private String affectedOpcode = "3";
+	private String testSituation = "1";
+	private String affectedOpcode = "1";
 	private String packetNumber = "1";
 	private String delayTime = "4000";
 	private String illegalOperation = "1";
@@ -209,8 +209,9 @@ public class Controller extends Thread{
 		return this.path;
 	}
 	public String getOutputMode() {
-		return outputMode;
+		return this.outputMode;
 	}
+	
 	public String getRunMode() {
 		return runMode;
 	}

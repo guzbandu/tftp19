@@ -85,7 +85,12 @@ public class TFTPClientConnection extends Thread {
 			if (j==len) req=Request.ERROR; // didn't find a 0 byte
 			if (j==2) req=Request.ERROR; // filename is 0 bytes long
 			// otherwise, extract filename
-			filename = new String(data,2,j-2);
+			if(req!=Request.ERROR) {
+				filename = new String(data,2,j-2);
+				if(controller.getOutputMode().equals("verbose")) {
+					System.out.println("filename: "+filename);
+				}
+			}
 		}
 
 		if(req!=Request.ERROR) { // check for mode
@@ -97,9 +102,16 @@ public class TFTPClientConnection extends Thread {
 			if (k==j+1) req=Request.ERROR; // mode is 0 bytes long
 			mode = new String(data,j+1,k-j-1);
 			if(req!=Request.ERROR) { //check if it is a valid mode
-				if(!(mode.equalsIgnoreCase("netascii")
+				if(mode.equalsIgnoreCase("netascii")
 						||mode.equalsIgnoreCase("octet")
-						||mode.equalsIgnoreCase("mail"))) req=Request.ERROR;
+						||mode.equalsIgnoreCase("mail")) {
+					if(controller.getOutputMode().equals("verbose")) {
+						System.out.println("mode: "+mode);
+						System.out.println();
+					}
+				} else {
+					req=Request.ERROR;
+				}
 			}
 		}
 
@@ -186,6 +198,11 @@ public class TFTPClientConnection extends Thread {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		byte unsignedByteTens = (byte) (sendPacket.getData()[2]);
+		byte unsignedByteOnes = (byte) (sendPacket.getData()[3]);
+		int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
+		System.out.println("Packet No.: " + packetNo);
+		if (outputMode.equals("quiet")) System.out.println();
 		if (outputMode.equals("verbose")){
 			System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 			System.out.println();
@@ -214,9 +231,9 @@ public class TFTPClientConnection extends Thread {
 				TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			}
 			//Make the byte counts in the range from 0 to 255 instead of -128 to 127
-			byte unsignedByteTens = (byte) (receivePacket.getData()[2]);
-			byte unsignedByteOnes = (byte) (receivePacket.getData()[3]);
-			int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
+			unsignedByteTens = (byte) (receivePacket.getData()[2]);
+			unsignedByteOnes = (byte) (receivePacket.getData()[3]);
+			packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
 			if(packetNo>ackPacketNumber||packetNo<=(ackPacketNumber-3)) { //Check for invalid packet number
 				TFTPException e = new TFTPException(4,"Error Code #4: Illegal TFTP operation");
@@ -252,9 +269,9 @@ public class TFTPClientConnection extends Thread {
 				TFTPReadWrite.printPacket(receivePacket, receivePacket.getPort(), "receive");
 			}
 			//Make the byte count in the range from 0 to 255 instead of -128 to 127
-			byte unsignedByteTens = (byte) (receivePacket.getData()[2]);
-			byte unsignedByteOnes = (byte) (receivePacket.getData()[3]);
-			int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
+			unsignedByteTens = (byte) (receivePacket.getData()[2]);
+			unsignedByteOnes = (byte) (receivePacket.getData()[3]);
+			packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 			System.out.println("Packet No.: " + packetNo + "\n");
 			if(packetNo==0&&oldPacketNo>packetNo) { //The counter has rolled over
 				packetNumber = 0; 
@@ -365,7 +382,9 @@ public class TFTPClientConnection extends Thread {
 				unsignedByteOnes = (byte) (sendPacket.getData()[3]);
 				packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
 				System.out.println("Packet No.: " + packetNo);
-				System.out.println();
+				if(outputMode.equals("quiet")){
+					System.out.println();
+				}
 				
 				// Send the datagram packet to the server via the send socket.
 				try {

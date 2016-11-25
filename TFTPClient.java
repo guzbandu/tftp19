@@ -60,9 +60,9 @@ public class TFTPClient {
 		//user sends directly to port 69 on the server
 		//otherwise it sends to the error simulator
 		if (runMode.equals("normal")) 
-			sendPort = 69;
+			sendPort = 2069;
 		else
-			sendPort = 23;
+			sendPort = 2023;
 		
 		//01 for READ and 02 for WRITE
 		msg[0] = 0;
@@ -146,8 +146,10 @@ public class TFTPClient {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		if (outputMode.equals("verbose"))
-			System.out.println("Client: Packet sent.\n");
+		if (outputMode.equals("verbose")) {
+			System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
+			System.out.println();
+		}		
 
 		int i = 1;
 		//Main loop
@@ -177,7 +179,10 @@ public class TFTPClient {
 			byte unsignedByteTens = (byte) (receivePacket.getData()[2]);
 			byte unsignedByteOnes = (byte) (receivePacket.getData()[3]);
 			int packetNo = (int) (unsignedByteOnes & 0xff) + 256*(int)(unsignedByteTens & 0xff);
-			System.out.println("Packet No.: " + packetNo + "\n");
+			System.out.println("Packet No.: " + packetNo);
+			if(outputMode!="verbose") {
+				System.out.println(); //Add a blank line separator if in quiet mode
+			}
 			if(packetNo==0&&oldPacketNo>packetNo) { //The counter has rolled over
 				packetNumber = 0; 
 				ackPacketNumber = 0; 
@@ -240,6 +245,7 @@ public class TFTPClient {
 					}
 					if (outputMode.equals("verbose")){
 						System.out.println("Data length: " + len);
+						System.out.println();
 					}
 					if (len < 516)
 						last_packet=true;
@@ -327,8 +333,11 @@ public class TFTPClient {
 						e.printStackTrace();
 						System.exit(1);
 					}
-					if (outputMode.equals("verbose"))
-						System.out.println("Client: Packet sent.\n");
+					if (outputMode.equals("verbose")) {
+						System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
+						System.out.println();
+					}		
+
 
 					// Construct a DatagramPacket for receiving packets up
 					// to 100 bytes long (the length of the byte array).
@@ -338,7 +347,7 @@ public class TFTPClient {
 					ackPacketNumber++;
 				} else if (request.equalsIgnoreCase("WRITE")&&ackPacketNumber!=packetNo) {
 					System.out.println("Ignoring duplicate ack.");
-					System.out.println("");
+					System.out.println();
 					if(i >= fileHandler.getNumSections() && finalPacketCount>=1)
 						quit = true;
 				} else if (request.equalsIgnoreCase("WRITE")&&ackPacketNumber==packetNo&&finalPacketCount>=1) {
@@ -489,7 +498,12 @@ public class TFTPClient {
 							System.exit(1);
 						}
 						if (outputMode.equals("verbose")) {
-							System.out.println("Client: Re-sending packet.\n");
+							System.out.println("Client: re-sendind packet using port " + sendReceiveSocket.getLocalPort());
+							System.out.println();
+						}
+					} else {
+						if(outputMode.equals("verbose")) {
+							System.out.println("Client: Did not receive packet. Receive Timed Out.");
 							System.out.println();
 						}
 					}
