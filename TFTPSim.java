@@ -12,8 +12,8 @@ import java.net.*;
 public class TFTPSim{
 
 	// UDP datagram packets and sockets used to send / receive
-	public static final int SERVER_PORT=2069;
-	public static final int CLIENT_PORT=2023;
+	public static final int SERVER_PORT=69;
+	public static final int CLIENT_PORT=23;
 	private DatagramPacket sendPacket;
 	protected DatagramPacket receivePacket;
 	protected DatagramSocket receiveSocket;
