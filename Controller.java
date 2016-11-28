@@ -116,14 +116,14 @@ public class Controller extends Thread{
 				String filename = scanner.nextLine();
 				System.out.println();
 				TFTPClient c = new TFTPClient();
-				c.sendAndReceive("READ", filename, transferMode, path, outputMode, runMode);
+				c.sendAndReceive("READ", filename, transferMode, path, outputMode, runMode, serverIP);
 			}
 			if(command.equals("write")){
 				System.out.print("\nEnter a file name:");
 				String filename = scanner.nextLine();
 				System.out.println();
             	TFTPClient c = new TFTPClient();
-            	c.sendAndReceive("WRITE", filename, transferMode, path, outputMode, runMode);
+            	c.sendAndReceive("WRITE", filename, transferMode, path, outputMode, runMode, serverIP);
 			}
 			if(command.equals("serverip")){
 				System.out.print("\nEnter a host name:");
