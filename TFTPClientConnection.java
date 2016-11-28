@@ -486,19 +486,16 @@ public class TFTPClientConnection extends Thread {
 			System.out.println("File Transfer Complete");
 		}
 		System.out.println();
-		if(req == Request.READ) {
-			try {
-				fileHandler.closeInFile();
-			} catch (TFTPException e) {
-				System.out.println("Error closing file " + path + filename + "\n" );
-			}
-		} else if (req == Request.WRITE) {
-			try {
-				fileHandler.closeOutFile();
-			} catch (TFTPException e) {
-				System.out.println("Error closing file " + path + filename + "\n" );
-			}
-		}		
+		try {
+			fileHandler.closeInFile();
+		} catch (TFTPException e) {
+			System.out.println("Error closing file " + path + filename + "\n" );
+		}
+		try {
+			fileHandler.closeOutFile();
+		} catch (TFTPException e) {
+			System.out.println("Error closing file " + path + filename + "\n" );
+		}
 	}
 	
 	private void receivePacketFromClient(Request req) {

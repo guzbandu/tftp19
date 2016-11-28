@@ -3,8 +3,8 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Controller extends Thread{
-	private String outputMode = "quiet";//"verbose";
-	private String runMode = "normal";//"test";
+	private String outputMode = "verbose";//"verbose";
+	private String runMode = "test";//"test";
 	private String transferMode = "OCTET";
 	public boolean quit = false;
 	private String user;
@@ -116,14 +116,14 @@ public class Controller extends Thread{
 				String filename = scanner.nextLine();
 				System.out.println();
 				TFTPClient c = new TFTPClient();
-				c.sendAndReceive("READ", filename, transferMode, path, outputMode, runMode);
+				c.sendAndReceive("READ", filename, transferMode, path, outputMode, runMode, serverIP);
 			}
 			if(command.equals("write")){
 				System.out.print("\nEnter a file name:");
 				String filename = scanner.nextLine();
 				System.out.println();
             	TFTPClient c = new TFTPClient();
-            	c.sendAndReceive("WRITE", filename, transferMode, path, outputMode, runMode);
+            	c.sendAndReceive("WRITE", filename, transferMode, path, outputMode, runMode, serverIP);
 			}
 			if(command.equals("serverip")){
 				System.out.print("\nEnter a host name:");

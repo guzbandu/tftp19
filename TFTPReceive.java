@@ -19,6 +19,7 @@ public class TFTPReceive extends Thread {
 			// Block until a datagram is received via sendReceiveSocket.
 			sendReceiveSocket.receive(parent.receivePacket);
 			parent.set_receive_success(true);
+			
 			//Get Host Port
 			if (!parent.hasHostPort){
 				parent.hasHostPort = true;
@@ -51,10 +52,15 @@ public class TFTPReceive extends Thread {
 		boolean illegalTFTP = false;
 		byte[]data = packet.getData();
 		int len = packet.getLength();
+		boolean ack = false;
 
 		if (data[0]!=0) illegalTFTP = true; // bad
 		else if (data[1]>5) illegalTFTP = true; //illegal opcode
 		else if (data[1]<1) illegalTFTP = true;
+		
+		if(data[1]==4) ack = true; //it is an ack request ensure it is only 4 characters in length
+		
+		if(ack && len>4) illegalTFTP = true; //extra characters at the end of the ack
 
 		if(len>516) illegalTFTP = true; // longer than 516 bytes
 

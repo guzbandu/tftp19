@@ -41,7 +41,7 @@ public class TFTPClient {
 		}
 	}
 
-	public void sendAndReceive(String request, String filename, String mode, String path, String outputMode, String runMode)
+	public void sendAndReceive(String request, String filename, String mode, String path, String outputMode, String runMode, InetAddress serverIp)
 	{
 		byte[] msg = new byte[100], // message we send
 				fn, // filename as an array of bytes
@@ -131,7 +131,7 @@ public class TFTPClient {
 		//  69 - the destination port number on the destination host.
 		//Sending packet
 		
-		sendPacket = new DatagramPacket(msg, len, controller.getServerIP(), sendPort);
+		sendPacket = new DatagramPacket(msg, len, serverIp, sendPort);
 
 		//Output for sending packet
 		if (outputMode.equals("verbose")){
@@ -313,7 +313,7 @@ public class TFTPClient {
 
 					//Sending packet
 				
-					sendPacket = new DatagramPacket(msg, len, controller.getServerIP(), p);
+					sendPacket = new DatagramPacket(msg, len, serverIp, p);
 						
 					//Output for sending packet
 					System.out.println("Client: Sending packet:");

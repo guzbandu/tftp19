@@ -49,12 +49,14 @@ public class TFTPServerReceive extends Thread {
 		byte[]data = packet.getData();
 		int len = packet.getLength();
 		boolean readWrite = false;
+		boolean ack = false;
 
 		if (data[0]!=0) illegalTFTP = true; // bad
 		else if (data[1]>5) illegalTFTP = true; //illegal opcode
 		else if (data[1]<1) illegalTFTP = true; 
 
 		if(data[1]==1||data[1]==2) readWrite = true;//it is a read or write request check for filename and mode
+		if(data[1]==4) ack = true; //it is an ack request ensure it is only 4 characters in length
 
 		if (!illegalTFTP && readWrite) { // check for filename
 			// search for next all 0 byte
@@ -80,7 +82,9 @@ public class TFTPServerReceive extends Thread {
 			}
 		}
 
-		if(readWrite && k!=len-1) illegalTFTP = true; // other stuff at end of packet 
+		if(readWrite && k!=len-1) illegalTFTP = true; // other stuff at end of packet
+		
+		if(ack && len>4) illegalTFTP = true; //extra characters at the end of the ack
 		
 		if(len>516) illegalTFTP = true; // longer than 516 bytes
 
