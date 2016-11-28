@@ -14,6 +14,7 @@ public class TFTPServer{
 	private DatagramSocket receiveSocket;
 	public Controller controller;
 	private int count;
+	private int hostPort = -1;
 
 	public TFTPServer()
 	{
@@ -36,12 +37,10 @@ public class TFTPServer{
 		byte[] data;
 
 		int len, j=0;
-		
-		int hostPort;
 
 		for(;;) { // loop forever
-
-			data = new byte[516];
+			boolean unknownTID = false;
+			data = new byte[520];
 			receivePacket = new DatagramPacket(data, data.length);
 
 			if(count==0) {
@@ -95,19 +94,32 @@ public class TFTPServer{
 				}
 				System.out.println();
 			}
-
+			
+			if(hostPort != -1){
+				System.out.println("RRQ/WRQ with Unknown TID received:");
+				unknownTID = true;
+				TFTPException e = new TFTPException(5,"Error Code #5: Unknown transfer ID");
+				DatagramPacket errorPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+						receivePacket.getAddress(), hostPort);
+				try {
+					receiveSocket.send(errorPacket);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				
+			}
 			hostPort = receivePacket.getPort();
 
 			// Create a new client connection thread to send the DatagramPacket unless the quit command has been received
-			if(!controller.quit) {
+			if(!controller.quit&&!unknownTID) {
 				Thread clientConnection = 
 					new TFTPClientConnection("Client Connection Thread", receivePacket, controller, hostPort);
 				clientConnection.start();
 				count=1;			
 			}			
-
+			hostPort = -1;
 		} // end of loop
-		
+
 	}
 
 	public static void main( String args[] ) throws Exception{

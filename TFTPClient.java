@@ -41,11 +41,7 @@ public class TFTPClient {
 		}
 	}
 
-<<<<<<< HEAD
 	public void sendAndReceive(String request, String filename, String mode, String path, String outputMode, String runMode, InetAddress serverIp)
-=======
-	public void sendAndReceive(String request, String filename, String mode, String path, String outputMode, String runMode, InetAddress serverip)
->>>>>>> c95ef36ebfb23c817bb38438140bc012867dabd9
 	{
 		byte[] msg = new byte[100], // message we send
 				fn, // filename as an array of bytes
@@ -135,11 +131,7 @@ public class TFTPClient {
 		//  69 - the destination port number on the destination host.
 		//Sending packet
 		
-<<<<<<< HEAD
 		sendPacket = new DatagramPacket(msg, len, serverIp, sendPort);
-=======
-		sendPacket = new DatagramPacket(msg, len, serverip, sendPort);
->>>>>>> c95ef36ebfb23c817bb38438140bc012867dabd9
 
 		//Output for sending packet
 		if (outputMode.equals("verbose")){
@@ -163,7 +155,7 @@ public class TFTPClient {
 		//Main loop
 		while (!quit) {
 
-			data = new byte[516];
+			data = new byte[520];
 			receivePacket = new DatagramPacket(data, data.length);
 
 			if (outputMode.equals("verbose"))
@@ -321,11 +313,7 @@ public class TFTPClient {
 
 					//Sending packet
 				
-<<<<<<< HEAD
 					sendPacket = new DatagramPacket(msg, len, serverIp, p);
-=======
-					sendPacket = new DatagramPacket(msg, len, serverip, p);
->>>>>>> c95ef36ebfb23c817bb38438140bc012867dabd9
 						
 					//Output for sending packet
 					System.out.println("Client: Sending packet:");

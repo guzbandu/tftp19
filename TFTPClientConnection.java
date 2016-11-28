@@ -247,7 +247,7 @@ public class TFTPClientConnection extends Thread {
 		//Main loop
 		while (!quit) {
 
-			data = new byte[516];
+			data = new byte[520];
 			if (controller.getOutputMode().equals("verbose")){
 				System.out.println("Waiting for packet");
 			}

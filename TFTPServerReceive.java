@@ -85,7 +85,7 @@ public class TFTPServerReceive extends Thread {
 		if(readWrite && k!=len-1) illegalTFTP = true; // other stuff at end of packet
 		
 		if(ack && len>4) illegalTFTP = true; //extra characters at the end of the ack
-		
+
 		if(len>516) illegalTFTP = true; // longer than 516 bytes
 
 		return illegalTFTP;

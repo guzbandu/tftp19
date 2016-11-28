@@ -121,9 +121,9 @@ public class TFTPSim{
 						receivePacket.getAddress(), serverPort);
 
 				System.out.println("Simulator: sending client packet.");
-				if (controller.getOutputMode().equals("verbose")){
-					TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-				}
+				//if (controller.getOutputMode().equals("verbose")){
+				//	TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
+				//}
 
 				// Send the datagram packet to the server via the send/receive socket potentially starting the error scenario
 				errorSimSend(sendReceiveSocket,sendPacket,data);
@@ -168,9 +168,9 @@ public class TFTPSim{
 						receivePacket.getAddress(), clientPort);
 				len = sendPacket.getLength();
 				System.out.println( "Simulator: Sending server packet:");
-				if (controller.getOutputMode().equals("verbose")){
-					TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
-				}
+				//if (controller.getOutputMode().equals("verbose")){
+				//	TFTPReadWrite.printPacket(sendPacket, sendPacket.getPort(), "send");
+				//}
 
 				//System.out.println("sendSocket:"+sendSocket);
 				errorSimSend(sendSocket,sendPacket,data);
@@ -210,6 +210,9 @@ public class TFTPSim{
 				System.exit(1);
 			}
 			try {
+				if (controller.getOutputMode().equals("verbose")){
+					TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
+				}
 				socket.send(packet);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -222,6 +225,9 @@ public class TFTPSim{
 			System.out.println();
 			//duplicate packet. Send packet, sleep, then send again.
 			try {
+				if (controller.getOutputMode().equals("verbose")){
+					TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
+				}
 				socket.send(packet);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -234,6 +240,9 @@ public class TFTPSim{
 				System.exit(1);
 			}
 			try {
+				if (controller.getOutputMode().equals("verbose")){
+					TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
+				}
 				socket.send(packet);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -319,6 +328,9 @@ public class TFTPSim{
 			}
 			
 			System.out.println("Illegal operation packet.");
+			if (controller.getOutputMode().equals("verbose")){
+				TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
+			}
 			System.out.println();
 			//send packet
 			try {
@@ -349,6 +361,9 @@ public class TFTPSim{
 
 			//send packet using normal TID
 			try {
+				if (controller.getOutputMode().equals("verbose")){
+					TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
+				}
 				socket.send(packet);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -359,6 +374,9 @@ public class TFTPSim{
 		}else{
 			//send packet normally
 			try {
+				if (controller.getOutputMode().equals("verbose")){
+					TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
+				}
 				socket.send(packet);
 			} catch (IOException e) {
 				e.printStackTrace();
