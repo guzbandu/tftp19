@@ -243,7 +243,20 @@ public class TFTPSim{
 				if (controller.getOutputMode().equals("verbose")){
 					TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
 				}
-				socket.send(packet);
+				if (controller.getAffectedOpcode() == 1||controller.getAffectedOpcode() == 2){
+					DatagramSocket duplicateRequest = null;
+					try {
+						duplicateRequest = new DatagramSocket();
+						duplicateRequest.send(packet);
+						duplicateRequest.disconnect();
+						duplicateRequest.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					} 
+				}else{
+					socket.send(packet);
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);

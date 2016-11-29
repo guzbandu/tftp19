@@ -32,13 +32,16 @@ public class TFTPClientConnection extends Thread {
 	public int hostPort;
 	public int expectedBlockNumber;
 	private int oldPacketNo; 
+	private TFTPServer server;
+	
 
-	public TFTPClientConnection(String name, DatagramPacket packet, Controller controller, int hostPort) {
+	public TFTPClientConnection(String name, DatagramPacket packet, Controller controller, int hostPort, TFTPServer server) {
 		super(name); // Name the thread
 		receivePacket = packet;
 		this.controller = controller;
 		this.outputMode = controller.getOutputMode();
 		this.hostPort = hostPort;
+		this.server = server;
 
 		// Construct a datagram socket and bind it to any available port
 		// on the local host machine. This socket will be used to
@@ -486,6 +489,7 @@ public class TFTPClientConnection extends Thread {
 			System.out.println("File Transfer Complete");
 		}
 		System.out.println();
+		server.hostPort = -1;
 		try {
 			fileHandler.closeInFile();
 		} catch (TFTPException e) {

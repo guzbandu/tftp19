@@ -14,7 +14,7 @@ public class TFTPServer{
 	private DatagramSocket receiveSocket;
 	public Controller controller;
 	private int count;
-	private int hostPort = -1;
+	public int hostPort = -1;
 
 	public TFTPServer()
 	{
@@ -94,30 +94,41 @@ public class TFTPServer{
 				}
 				System.out.println();
 			}
-			
 			if(hostPort != -1){
-				System.out.println("RRQ/WRQ with Unknown TID received:");
 				unknownTID = true;
 				TFTPException e = new TFTPException(5,"Error Code #5: Unknown transfer ID");
-				DatagramPacket errorPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
-						receivePacket.getAddress(), hostPort);
-				try {
-					receiveSocket.send(errorPacket);
-				} catch (IOException e1) {
-					e1.printStackTrace();
+				int p = receivePacket.getPort();
+				DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
+						receivePacket.getAddress(), p);
+				if (controller.getOutputMode().equals("verbose")){
+					System.out.println();
+					TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
 				}
-				
+				System.out.println("Error Code #5: Unknown transfer ID");
+				System.out.println();
+				DatagramSocket duplicateRequest = null;
+				try {
+					duplicateRequest = new DatagramSocket();
+					duplicateRequest.send(unknownIDPacket);
+					duplicateRequest.disconnect();
+					duplicateRequest.close();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+					System.exit(1);
+				} 
+			}else{
+				hostPort = receivePacket.getPort();
 			}
-			hostPort = receivePacket.getPort();
-
+			
+			
 			// Create a new client connection thread to send the DatagramPacket unless the quit command has been received
-			if(!controller.quit&&!unknownTID) {
+			if(!controller.quit && !unknownTID) {
 				Thread clientConnection = 
-					new TFTPClientConnection("Client Connection Thread", receivePacket, controller, hostPort);
+					new TFTPClientConnection("Client Connection Thread", receivePacket, controller, hostPort,this);
 				clientConnection.start();
 				count=1;			
 			}			
-			hostPort = -1;
+			
 		} // end of loop
 
 	}
