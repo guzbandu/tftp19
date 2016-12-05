@@ -59,7 +59,7 @@ public class TFTPTestSuite {
 	public void TestReadNoSimOnePacket() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("READ", "./Server/testReadOne.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("READ", "./Server/testReadOne.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -82,7 +82,7 @@ public class TFTPTestSuite {
 	public void TestReadNoSimLess() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("READ", "./Server/testReadLess.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("READ", "./Server/testReadLess.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -105,7 +105,7 @@ public class TFTPTestSuite {
 	public void TestReadNoSimExact() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("READ", "./Server/testReadExact.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("READ", "./Server/testReadExact.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -128,7 +128,7 @@ public class TFTPTestSuite {
 	public void TestReadNoSimMore() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("READ", "./Server/testReadMore.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("READ", "./Server/testReadMore.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -151,7 +151,7 @@ public class TFTPTestSuite {
 	public void TestReadNoSimMultiple() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("READ", "./Server/testReadMulti.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("READ", "./Server/testReadMulti.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -174,7 +174,7 @@ public class TFTPTestSuite {
 	public void TestWriteNoSimOnePacket() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("WRITE", "./Client/testWriteOne.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("WRITE", "./Client/testWriteOne.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -197,7 +197,7 @@ public class TFTPTestSuite {
 	public void TestWriteNoSimLess() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("WRITE", "./Client/testWriteLess.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("WRITE", "./Client/testWriteLess.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -220,7 +220,7 @@ public class TFTPTestSuite {
 	public void TestWriteNoSimExact() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("WRITE", "./Client/testWriteExact.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("WRITE", "./Client/testWriteExact.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -243,7 +243,7 @@ public class TFTPTestSuite {
 	public void TestWriteNoSimMore() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("WRITE", "./Client/testWriteMore.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("WRITE", "./Client/testWriteMore.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -266,7 +266,7 @@ public class TFTPTestSuite {
 	public void TestWriteNoSimMultiple() {
 		TFTPClient client = new TFTPClient();
 		client.controller.setPath("./Client/");
-		client.sendAndReceive("WRITE", "./Client/testWriteMulti.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode());
+		client.sendAndReceive("WRITE", "./Client/testWriteMulti.txt", client.controller.getTransferMode(), client.controller.getPath(), client.controller.getOutputMode(), client.controller.getRunMode(), client.controller.getServerIP());
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {

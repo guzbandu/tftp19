@@ -253,7 +253,7 @@ public class TFTPClient {
 				packetNumber++;
 			} else {
 				if(request.equalsIgnoreCase("READ")) {
-					System.out.println("Duplicate packet ignored.");
+					System.out.println("Duplicate packet not written.");
 					System.out.println();
 				}
 			}
@@ -346,7 +346,7 @@ public class TFTPClient {
 
 					ackPacketNumber++;
 				} else if (request.equalsIgnoreCase("WRITE")&&ackPacketNumber!=packetNo) {
-					System.out.println("Ignoring duplicate ack.");
+					System.out.println("Duplicate ack ignored.");
 					System.out.println();
 					if(i >= fileHandler.getNumSections() && finalPacketCount>=1)
 						quit = true;

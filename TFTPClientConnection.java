@@ -367,7 +367,7 @@ public class TFTPClientConnection extends Thread {
 					}
 					packetNumber++;
 				} else {
-					System.out.println("Duplicate packet ignored.");
+					System.out.println("Duplicate packet not written.");
 					System.out.println("");
 				}
 			}
@@ -473,7 +473,7 @@ public class TFTPClientConnection extends Thread {
 						req = Request.ERROR;
 						break;
 					} else {
-						System.out.println("Duplicate ack.");
+						System.out.println("Duplicate ack ignored.");
 						System.out.println("");
 						quit=false;
 					}
