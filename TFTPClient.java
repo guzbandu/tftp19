@@ -511,6 +511,7 @@ public class TFTPClient {
 					} else {
 						if(outputMode.equals("verbose")) {
 							System.out.println("Client: Did not receive packet. Receive Timed Out.");
+							System.out.println("Server is not responding");
 							System.out.println();
 						}
 					}

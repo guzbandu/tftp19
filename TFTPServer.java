@@ -95,7 +95,13 @@ public class TFTPServer{
 				System.out.println();
 				System.out.println();
 			}
-			if(hostPort != -1){
+			InetAddress thisAddress = null;
+			try {
+				thisAddress = InetAddress.getLocalHost();
+			} catch (UnknownHostException e1) {
+				e1.printStackTrace();
+			}
+			if(hostPort != -1 && receivePacket.getAddress() == thisAddress){
 				unknownTID = true;
 				TFTPException e = new TFTPException(5,"Error Code #5: Unknown transfer ID");
 				int p = receivePacket.getPort();
