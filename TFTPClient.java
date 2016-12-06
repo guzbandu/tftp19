@@ -34,7 +34,7 @@ public class TFTPClient {
 			// port on the local host machine. This socket will be used to
 			// send and receive UDP Datagram packets.
 			sendReceiveSocket = new DatagramSocket();
-			sendReceiveSocket.setSoTimeout(30000); //TODO
+			sendReceiveSocket.setSoTimeout(2000); //TODO
 		} catch (SocketException se) {   // Can't create the socket.
 			se.printStackTrace();
 			System.exit(1);
