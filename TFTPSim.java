@@ -62,7 +62,7 @@ public class TFTPSim{
 	public void relayPacket()
 	{
 		byte[] data;
-
+		InetAddress serverIP;
 		//int clientPort=0, len, serverPort=69;
 		int len;
 
@@ -70,7 +70,7 @@ public class TFTPSim{
 		packetCount = 0; //We start by dealing with the request packet and the next packet is the "first" packet
 
 		for(;;) { // loop forever
-
+			serverIP = controller.getServerIP();
 			data = new byte[516];
 			receivePacket = new DatagramPacket(data, data.length);
 
@@ -118,7 +118,7 @@ public class TFTPSim{
 				}
 
 				sendPacket = new DatagramPacket(data, len,
-						receivePacket.getAddress(), serverPort);
+						serverIP, serverPort);
 
 				System.out.println("Simulator: sending client packet.");
 				//if (controller.getOutputMode().equals("verbose")){
@@ -163,9 +163,14 @@ public class TFTPSim{
 				if (controller.getOutputMode().equals("verbose")){
 					TFTPReadWrite.printPacket(receivePacket, serverPort, "receive");
 				}
-
+				try {
+					serverIP = InetAddress.getLocalHost();
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				}
+			
 				sendPacket = new DatagramPacket(data, receivePacket.getLength(),
-						receivePacket.getAddress(), clientPort);
+						serverIP, clientPort);
 				len = sendPacket.getLength();
 				System.out.println( "Simulator: Sending server packet:");
 				//if (controller.getOutputMode().equals("verbose")){

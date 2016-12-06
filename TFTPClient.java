@@ -41,7 +41,7 @@ public class TFTPClient {
 		}
 	}
 
-	public void sendAndReceive(String request, String filename, String mode, String path, String outputMode, String runMode, InetAddress serverIp)
+	public void sendAndReceive(String request, String filename, String mode, String path, String outputMode, String runMode, InetAddress ip)
 	{
 		byte[] msg = new byte[100], // message we send
 				fn, // filename as an array of bytes
@@ -55,14 +55,21 @@ public class TFTPClient {
 		boolean send = false; //Used if error on this side and we need to send the final error message
 		hasHostPort = false;
 		int finalPacketCount = 0;
+		InetAddress serverIp = ip;
 	    
 		//If user enters "normal" as the mode
 		//user sends directly to port 69 on the server
 		//otherwise it sends to the error simulator
 		if (runMode.equals("normal")) 
 			sendPort = 69;
-		else
+		else{
 			sendPort = 23;
+			try {
+				serverIp = InetAddress.getLocalHost();
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+		}
 		
 		//01 for READ and 02 for WRITE
 		msg[0] = 0;

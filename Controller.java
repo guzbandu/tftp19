@@ -33,11 +33,20 @@ public class Controller extends Thread{
 	
 	public Controller(TFTPSim sim){
 		this.user = "Sim";
+		try {
+			serverIP = InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public Controller(TFTPServer server){
 		this.user = "Server";
-		
+		try {
+			serverIP = InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	//Main loop
@@ -65,6 +74,7 @@ public class Controller extends Thread{
 			System.out.println("Delay Time:\t" + delayTime);
 			System.out.println("Illegal TFTP Operation:\t" + illegalOperation);
 			System.out.println("Byte Increase:\t" + byteChange);
+			System.out.println("Server IP:\t" + serverIP.toString());
 		}
 		System.out.println("Path:\t" + path);
 		System.out.print("\nTo set output mode type 'verbose' or 'quiet'");
@@ -85,6 +95,7 @@ public class Controller extends Thread{
 			System.out.print("\nTo set delay time type 'delay'");
 			System.out.print("\nTo set illegal TFTP operation type 'operation'");
 			System.out.print("\nTo set byte increase for illegal TFTP operation type 'byte'");
+			System.out.print("\nTo set the server's IP type 'serverip'");
 		}
 		System.out.print("\nTo set quit type 'quit'");
 		System.out.println();
@@ -196,6 +207,16 @@ public class Controller extends Thread{
 				String time = scanner.nextLine();
 				System.out.println();
 				byteChange = time;
+			}
+			if(command.equals("serverip")){
+				System.out.print("\nEnter a host name:");
+				String hostname = scanner.nextLine();
+				System.out.println();
+				try {
+					serverIP = InetAddress.getByName(hostname);
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
