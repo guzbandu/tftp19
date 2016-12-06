@@ -93,6 +93,7 @@ public class TFTPServer{
 					System.out.print(data[j] + " | ");
 				}
 				System.out.println();
+				System.out.println();
 			}
 			if(hostPort != -1){
 				unknownTID = true;
@@ -100,9 +101,18 @@ public class TFTPServer{
 				int p = receivePacket.getPort();
 				DatagramPacket unknownIDPacket = new DatagramPacket(e.getErrorBytes(), e.getErrorBytes().length,
 						receivePacket.getAddress(), p);
+				System.out.println();
+				System.out.println("Server: Sending packet:");
 				if (controller.getOutputMode().equals("verbose")){
+					System.out.println("To host: " + unknownIDPacket.getAddress());
+					System.out.println("Destination host port: " + unknownIDPacket.getPort());
+					int length = unknownIDPacket.getLength();
+					System.out.println("Length: " + length);
+					System.out.println("Containing: ");
+					for (int k=0;k<length;k++) {
+						System.out.print(unknownIDPacket.getData()[k] + " | ");
+					}
 					System.out.println();
-					TFTPReadWrite.printPacket(unknownIDPacket, unknownIDPacket.getPort(), "send");
 				}
 				System.out.println("Error Code #5: Unknown transfer ID");
 				System.out.println();

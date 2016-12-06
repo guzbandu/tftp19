@@ -156,7 +156,7 @@ public class TFTPSim{
 				resend_count++;
 			}
 			if(receive_success) {
-
+				
 				serverPort = receivePacket.getPort();
 
 				System.out.println("Simulator: Server packet received:");
@@ -195,6 +195,9 @@ public class TFTPSim{
 				&& packetCount == controller.getPacketNumber() && !networkErrorDone){
 			networkErrorDone = true;
 			System.out.println("Losing packet.");
+			if (controller.getOutputMode().equals("verbose")){
+				TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
+			}
 			System.out.println();
 			return; //lose packet
 		}else if(controller.getTestSituation()==2 && packet.getData()[1]==controller.getAffectedOpcode()
@@ -222,7 +225,6 @@ public class TFTPSim{
 				&& packetCount == controller.getPacketNumber() && !networkErrorDone){
 			networkErrorDone = true;
 			System.out.println("Duplicating packet.");
-			System.out.println();
 			//duplicate packet. Send packet, sleep, then send again.
 			try {
 				if (controller.getOutputMode().equals("verbose")){
@@ -240,6 +242,7 @@ public class TFTPSim{
 				System.exit(1);
 			}
 			try {
+				System.out.println("Sending duplicate packet.");
 				if (controller.getOutputMode().equals("verbose")){
 					TFTPReadWrite.printPacket(packet, packet.getPort(), "send");
 				}

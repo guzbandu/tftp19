@@ -537,7 +537,7 @@ public class TFTPClientConnection extends Thread {
 				sendErrorMessage(unknownIDPacket);
 				break;
 			}
-			if(error_number==0||error_number==5) {
+			if(error_number==0) {
 				if(!receive_success) {
 					//we did not receive a packet before timing out, re-send our packet
 					//Sending request packet
