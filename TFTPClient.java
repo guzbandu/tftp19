@@ -498,7 +498,7 @@ public class TFTPClient {
 							System.exit(1);
 						}
 						if (outputMode.equals("verbose")) {
-							System.out.println("Client: re-sendind packet using port " + sendReceiveSocket.getLocalPort());
+							System.out.println("Client: re-sending packet using port " + sendReceiveSocket.getLocalPort());
 							System.out.println();
 						}
 					} else {
