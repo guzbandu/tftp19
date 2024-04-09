@@ -4,6 +4,7 @@ metadata:
   name: tftp19
   annotations:
     github.com/project-slug: guzbandu/tftp19
+    backstage.io/source-location: url:https://github.com/guzbandu/tftp19/blob/master/ServerStartTest.java
 spec:
   type: other
   lifecycle: unknown
