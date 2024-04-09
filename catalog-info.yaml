@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: tftp19
+  annotations:
+    github.com/project-slug: guzbandu/tftp19
+spec:
+  type: other
+  lifecycle: unknown
+  owner: guzbandu
